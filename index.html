@@ -538,169 +538,6 @@
         }
 
         /* =========================
-           FEATURED PRODUCTS
-        ========================= */
-
-        .featured {
-            background: #f5f9fb;
-        }
-
-        .featured-grid {
-            max-width: 1200px;
-
-            margin: auto;
-
-            display: grid;
-
-            grid-template-columns:
-                repeat(3, 1fr);
-
-            gap: 25px;
-        }
-
-        .featured-card {
-            overflow: hidden;
-
-            background: white;
-
-            border:
-                1px solid #e4eaed;
-
-            border-radius: 17px;
-
-            box-shadow:
-                0 4px 18px rgba(0,0,0,0.04);
-
-            transition: 0.3s;
-        }
-
-        .featured-card:hover {
-            transform: translateY(-7px);
-
-            box-shadow:
-                0 17px 38px rgba(0,0,0,0.09);
-        }
-
-        .featured-image {
-            height: 350px;
-
-            padding: 24px;
-
-            display: flex;
-            align-items: center;
-            justify-content: center;
-
-            background: #f8fafb;
-        }
-
-        .featured-image img {
-            width: 100%;
-            height: 100%;
-
-            object-fit: contain;
-        }
-
-        .featured-content {
-            padding: 24px;
-        }
-
-        .product-label {
-            display: inline-block;
-
-            padding: 5px 12px;
-            margin-bottom: 8px;
-
-            color: #0797d3;
-            background: #e8f7fc;
-
-            border-radius: 20px;
-
-            font-size: 12px;
-            font-weight: 800;
-        }
-
-        .featured-content h3 {
-            margin-bottom: 8px;
-
-            color: #222;
-
-            font-size: 23px;
-        }
-
-        .featured-content p {
-            min-height: 72px;
-
-            color: #707070;
-
-            font-size: 14px;
-        }
-
-        .featured-info {
-            margin: 15px 0 20px;
-
-            padding: 12px 14px;
-
-            color: #176182;
-            background: #f0f8fb;
-
-            border-radius: 7px;
-
-            font-size: 13px;
-            font-weight: 700;
-        }
-
-        .featured-button {
-            display: block;
-
-            padding: 11px;
-
-            color: white;
-            background: #0797d3;
-
-            border-radius: 7px;
-
-            text-align: center;
-
-            font-weight: 700;
-
-            transition: 0.25s;
-        }
-
-        .featured-button:hover {
-            background: #087ead;
-        }
-
-
-        .featured-loading {
-            grid-column: 1 / -1;
-            padding: 55px 20px;
-            background: white;
-            border: 1px solid #e4eaed;
-            border-radius: 17px;
-            color: #777;
-            text-align: center;
-        }
-
-        .all-product-button {
-            margin-top: 42px;
-
-            text-align: center;
-        }
-
-        .all-product-button a {
-            display: inline-block;
-
-            padding: 13px 30px;
-
-            color: white;
-            background: #0797d3;
-
-            border-radius: 7px;
-
-            font-weight: 700;
-        }
-
-        /* =========================
            REPAIR
         ========================= */
 
@@ -1307,46 +1144,6 @@
 
 </section>
 
-
-
-
-<section class="featured" id="products">
-
-    <div class="section-title">
-
-        <span>
-            FEATURED PRODUCTS
-        </span>
-
-        <h2>
-            熱賣商品
-        </h2>
-
-        <p>
-            精選人氣商品，提供您安心實用的輔具選擇
-        </p>
-
-    </div>
-
-    <div
-        id="featuredProductGrid"
-        class="featured-grid">
-
-        <div class="featured-loading">
-            熱賣商品載入中...
-        </div>
-
-    </div>
-
-    <div class="all-product-button">
-
-        
-
-    </div>
-
-</section>
-
-
 <!-- REPAIR -->
 
 <section class="repair">
@@ -1520,231 +1317,6 @@
     </a>
 </footer>
 
-
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-
-
-<script>
-const HOME_SUPABASE_URL =
-    "https://sdkgiedglmhmchiietru.supabase.co";
-
-const HOME_SUPABASE_KEY =
-    "sb_publishable_ofwe1YigppMHJjcWu_VjUA_XF7wNzEm";
-
-const homeDb =
-    supabase.createClient(
-        HOME_SUPABASE_URL,
-        HOME_SUPABASE_KEY
-    );
-
-const featuredProductGrid =
-    document.getElementById(
-        "featuredProductGrid"
-    );
-
-function homeCategoryName(category) {
-
-    const names = {
-        wheelchair: "輪椅系列",
-        mobility: "行動輔具",
-        assistive: "照護輔具",
-        medical: "醫療用品",
-        repair: "輔具維修"
-    };
-
-    return names[category] || category || "商品";
-}
-
-function homeEscapeHTML(value) {
-
-    const div =
-        document.createElement("div");
-
-    div.textContent =
-        value || "";
-
-    return div.innerHTML;
-}
-
-function homeEscapeAttribute(value) {
-
-    return String(value || "")
-        .replace(/&/g, "&amp;")
-        .replace(/"/g, "&quot;")
-        .replace(/</g, "&lt;")
-        .replace(/>/g, "&gt;");
-}
-
-async function loadFeaturedProducts() {
-
-    if (!featuredProductGrid) {
-        return;
-    }
-
-    featuredProductGrid.innerHTML = `
-        <div class="featured-loading">
-            熱賣商品載入中...
-        </div>
-    `;
-
-    const {
-        data,
-        error
-    } =
-        await homeDb
-        .from("products")
-        .select("*")
-        .eq("is_active", true)
-        .eq("featured", true)
-        .order(
-            "sort_order",
-            {
-                ascending: true
-            }
-        )
-        .order(
-            "created_at",
-            {
-                ascending: false
-            }
-        )
-        .limit(6);
-
-    if (error) {
-
-        featuredProductGrid.innerHTML = `
-            <div class="featured-loading">
-                熱賣商品暫時無法載入
-            </div>
-        `;
-
-        console.error(
-            "Featured products error:",
-            error
-        );
-
-        return;
-    }
-
-    if (!data || !data.length) {
-
-        featuredProductGrid.innerHTML = `
-            <div class="featured-loading">
-                目前尚未設定熱賣商品
-            </div>
-        `;
-
-        return;
-    }
-
-    featuredProductGrid.innerHTML = "";
-
-    data.forEach(
-        function (product) {
-
-            const card =
-                document.createElement(
-                    "div"
-                );
-
-            card.className =
-                "featured-card";
-
-            const image =
-                product.image_urls &&
-                product.image_urls.length
-                ?
-                product.image_urls[0]
-                :
-                "";
-
-            const description =
-                product.short_description
-                ||
-                product.description
-                ||
-                "歡迎查看完整商品資訊。";
-
-            const category =
-                product.category
-                ||
-                "all";
-
-            card.innerHTML = `
-
-                <div class="featured-image">
-
-                    ${
-                        image
-                        ?
-                        `
-                        <img
-                            src="${homeEscapeAttribute(image)}"
-                            alt="${homeEscapeAttribute(product.name)}">
-                        `
-                        :
-                        `
-                        <div style="
-                            color:#999;
-                            text-align:center;
-                        ">
-                            尚無商品圖片
-                        </div>
-                        `
-                    }
-
-                </div>
-
-                <div class="featured-content">
-
-                    <span class="product-label">
-                        ${homeEscapeHTML(
-                            homeCategoryName(
-                                product.category
-                            )
-                        )}
-                    </span>
-
-                    <h3>
-                        ${homeEscapeHTML(product.name)}
-                    </h3>
-
-                    <p>
-                        ${homeEscapeHTML(description)}
-                    </p>
-
-                    ${
-                        product.subsidy
-                        ?
-                        `
-                        <div class="featured-info">
-                            補助：${homeEscapeHTML(product.subsidy)}
-                        </div>
-                        `
-                        :
-                        ""
-                    }
-
-                    <a
-                        href="products.html?category=${encodeURIComponent(category)}"
-                        class="featured-button">
-                        查看產品
-                    </a>
-
-                </div>
-
-            `;
-
-            featuredProductGrid.appendChild(
-                card
-            );
-        }
-    );
-}
-
-loadFeaturedProducts();
-</script>
-
 <script>
 document.addEventListener("DOMContentLoaded", function () {
 
@@ -1778,12 +1350,27 @@ document.addEventListener("DOMContentLoaded", function () {
 
             let currentId = "home";
 
-            if (
-                categoriesSection &&
-                categoriesSection.offsetTop <= scrollPosition
-            ) {
+            if (categoriesSection && categoriesSection.offsetTop <= scrollPosition) {
                 currentId = "categories";
             }
+
+            if (contactSection && contactSection.offsetTop <= scrollPosition) {
+                currentId = "contact";
+            }
+
+            if (
+                window.innerHeight + window.scrollY >=
+                document.documentElement.scrollHeight - 10
+            ) {
+                currentId = "contact";
+            }
+
+            const currentLink = links.find(function (link) {
+                return link.getAttribute("href") === "#" + currentId;
+            });
+
+            moveIndicator(currentLink);
+        }
 
             if (
                 contactSection &&
