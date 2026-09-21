@@ -121,7 +121,7 @@
         nav {
             display: flex;
             align-items: center;
-            gap: 42px;
+            gap: 26px;
         }
 
         nav a {
@@ -1028,12 +1028,9 @@
             height: 54px;
             border-radius: 10px;
             background: #0797d3;
-
-            /* 只移動 transform，避免 width / left 造成卡頓 */
             transform: translate3d(0, -50%, 0);
-            transition: transform 0.34s cubic-bezier(0.22, 1, 0.36, 1);
+            transition: transform .32s ease;
             will-change: transform;
-            backface-visibility: hidden;
             pointer-events: none;
         }
 
@@ -1064,7 +1061,59 @@
             color: rgba(255,255,255,0.72);
         }
 
-    </style>
+    
+        /* 富致康首頁精簡響應式版 */
+        html{scroll-padding-top:96px}
+        header{min-height:88px;padding:12px clamp(24px,6vw,100px);gap:28px}
+        .logo{min-width:0;flex:0 1 auto}
+        .logo img{flex:0 0 auto}
+        .logo span{white-space:nowrap}
+        header nav{margin-left:auto;flex:0 1 auto;min-width:0;gap:clamp(14px,2vw,42px);white-space:nowrap}
+        header nav a{flex:0 0 auto}
+        #home{height:0;scroll-margin-top:88px}
+
+        .category-grid{grid-template-columns:repeat(5,minmax(0,1fr));gap:22px}
+        .category-card{min-height:150px;display:flex;align-items:center;padding:28px 34px}
+        .category-card h3{margin:0}
+        .category-card p{display:none!important}
+
+        @media(max-width:1180px){
+          header{padding-left:32px;padding-right:32px;gap:20px}
+          .logo img{width:112px}
+          .logo span{font-size:20px}
+          header nav{gap:12px}
+          header nav a{font-size:14px}
+          .nav-indicator{width:82px!important;height:50px!important}
+          .category-grid{grid-template-columns:repeat(3,minmax(0,1fr))}
+        }
+        @media(max-width:900px){
+          header{height:auto;min-height:0;padding:12px 5% 10px;flex-direction:column;align-items:center;gap:8px}
+          .logo{justify-content:center}
+          .logo img{width:105px}
+          .logo span{font-size:19px}
+          header nav{width:100%;margin-left:0;justify-content:center;gap:8px}
+          header nav a{padding:10px 12px;font-size:14px}
+          .nav-indicator{height:44px!important}
+          html{scroll-padding-top:135px}
+        }
+        @media(max-width:700px){
+          header{align-items:stretch}
+          .logo{align-self:center}
+          .logo span{font-size:18px}
+          header nav{overflow-x:auto;justify-content:flex-start;padding:3px 2px 5px;scrollbar-width:none}
+          header nav::-webkit-scrollbar{display:none}
+          .nav-indicator{display:none!important}
+          header nav a.nav-current{color:#0797d3!important;background:#eef8fc;border-radius:8px}
+          .category-grid{grid-template-columns:repeat(2,minmax(0,1fr));gap:14px}
+          .category-card{min-height:112px;padding:22px 20px}
+        }
+        @media(max-width:430px){
+          .logo img{width:90px}
+          .logo span{font-size:16px}
+          .category-grid{grid-template-columns:1fr}
+        }
+
+</style>
 
 </head>
 
@@ -1100,10 +1149,6 @@
             產品分類
         </a>
 
-        <a href="#products">
-            熱賣商品
-        </a>
-
         <a href="#contact">
             聯絡我們
         </a>
@@ -1113,50 +1158,7 @@
 </header>
 
 
-<!-- HERO -->
-
-<section class="hero" id="home">
-
-    <div class="hero-content">
-
-        <div class="hero-small">
-            MEDICAL EQUIPMENT & MOBILITY AIDS
-        </div>
-
-        <h1>
-            富致康醫療器材
-        </h1>
-
-        <h2>
-            專業醫療器材・輔具用品・維修服務
-        </h2>
-
-        <p>
-            成立經營於2010年，
-            專營各式醫療器材、醫療儀器設備、
-            輔具用品、醫療耗材及保健相關產品，
-            提供批發、零售與專業維修服務。
-        </p>
-
-        <div class="hero-buttons">
-
-            <a
-                href="products.html"
-                class="btn-white">
-                瀏覽產品
-            </a>
-
-            <a
-                href="#contact"
-                class="btn-outline">
-                聯絡我們
-            </a>
-
-        </div>
-
-    </div>
-
-</section>
+<div id="home"></div>
 
 
 <!-- ABOUT -->
@@ -1225,50 +1227,45 @@
     </div>
 
     <div class="category-grid">
+            <a href="products.html" class="category-card">
+                <h3>全部商品</h3>
+            </a>
+
 
         <a href="products.html?category=aluminum-wheelchair" class="category-card">
             <h3>鋁製輪椅</h3>
-            <p>輕量化鋁合金輪椅系列</p>
         </a>
 
         <a href="products.html?category=steel-wheelchair" class="category-card">
             <h3>鐵製輪椅</h3>
-            <p>耐用穩固鐵製輪椅系列</p>
         </a>
 
         <a href="products.html?category=rollator" class="category-card">
             <h3>助步車</h3>
-            <p>行走輔助與移動支撐用品</p>
         </a>
 
         <a href="products.html?category=commode-chair" class="category-card">
             <h3>便椅</h3>
-            <p>如廁輔助相關用品</p>
         </a>
 
         <a href="products.html?category=shower-chair" class="category-card">
             <h3>洗澡椅</h3>
-            <p>沐浴使用安全輔助用品</p>
         </a>
 
         <a href="products.html?category=walker" class="category-card">
             <h3>助行器</h3>
-            <p>提升行走穩定與安全</p>
         </a>
 
         <a href="products.html?category=cane-crutch" class="category-card">
             <h3>手／拐杖</h3>
-            <p>各式手杖與拐杖用品</p>
         </a>
 
         <a href="products.html?category=quad-cane" class="category-card">
             <h3>四腳拐</h3>
-            <p>四點支撐型行走輔具</p>
         </a>
 
         <a href="products.html?category=accessories" class="category-card">
             <h3>輔助用品</h3>
-            <p>各式醫療與生活輔助用品</p>
         </a>
 
     </div>
@@ -1735,11 +1732,6 @@ document.addEventListener("DOMContentLoaded", function () {
         "contact"
     ];
 
-    let clickedTargetId = null;
-    let clickLock = false;
-    let scrollEndTimer = null;
-    let rafPending = false;
-
     function moveIndicator(link) {
 
         if (!link) return;
@@ -1751,17 +1743,12 @@ document.addEventListener("DOMContentLoaded", function () {
         link.classList.add("nav-current");
 
         if (indicator && window.innerWidth > 750) {
-
-            const targetX =
-                link.offsetLeft +
-                (link.offsetWidth - indicator.offsetWidth) / 2;
-
-            indicator.style.transform =
-                `translate3d(${targetX}px, -50%, 0)`;
+            indicator.style.width = link.offsetWidth + "px";
+            indicator.style.left = link.offsetLeft + "px";
         }
     }
 
-    function getCurrentSectionId() {
+    function updateActiveNav() {
 
         const scrollPosition =
             window.scrollY + 180;
@@ -1779,6 +1766,7 @@ document.addEventListener("DOMContentLoaded", function () {
             ) {
                 currentId = id;
             }
+
         });
 
         if (
@@ -1787,20 +1775,6 @@ document.addEventListener("DOMContentLoaded", function () {
         ) {
             currentId = "contact";
         }
-
-        return currentId;
-    }
-
-    function updateActiveNav() {
-
-        /*
-         * 使用者剛點擊導覽項目時，鎖住藍框。
-         * 頁面即使滑過其他 section，也不讓藍框中途停靠。
-         */
-        if (clickLock) return;
-
-        const currentId =
-            getCurrentSectionId();
 
         const currentLink =
             links.find(function (link) {
@@ -1816,90 +1790,24 @@ document.addEventListener("DOMContentLoaded", function () {
         link.addEventListener(
             "click",
             function () {
-
-                clickedTargetId =
-                    link.getAttribute("href").slice(1);
-
-                clickLock = true;
-
-                /*
-                 * 點哪一個，藍框立即只往那個選項移動。
-                 * 中途不會因 scroll 經過其他 section 而改變目標。
-                 */
                 moveIndicator(link);
-
-                clearTimeout(scrollEndTimer);
-
-                scrollEndTimer = setTimeout(function () {
-                    clickLock = false;
-                    clickedTargetId = null;
-                    updateActiveNav();
-                }, 900);
             }
         );
+
     });
 
     window.addEventListener(
         "scroll",
-        function () {
-
-            /*
-             * 點擊造成的 smooth scroll 期間完全忽略 scroll 更新。
-             */
-            if (clickLock) {
-
-                clearTimeout(scrollEndTimer);
-
-                scrollEndTimer = setTimeout(function () {
-                    clickLock = false;
-                    clickedTargetId = null;
-                    updateActiveNav();
-                }, 140);
-
-                return;
-            }
-
-            /*
-             * 一般手動捲動時，一個畫面 frame 最多更新一次。
-             */
-            if (rafPending) return;
-
-            rafPending = true;
-
-            requestAnimationFrame(function () {
-                updateActiveNav();
-                rafPending = false;
-            });
-        },
+        updateActiveNav,
         { passive: true }
     );
 
     window.addEventListener(
         "resize",
-        function () {
-            updateActiveNav();
-        }
+        updateActiveNav
     );
 
-    /*
-     * 首次載入不播放從左側飛進來的動畫，
-     * 直接把藍框放到正確位置。
-     */
-    if (indicator) {
-        const oldTransition =
-            indicator.style.transition;
-
-        indicator.style.transition = "none";
-        updateActiveNav();
-
-        requestAnimationFrame(function () {
-            requestAnimationFrame(function () {
-                indicator.style.transition = "";
-            });
-        });
-    } else {
-        updateActiveNav();
-    }
+    updateActiveNav();
 
 });
 </script>
