@@ -2467,6 +2467,30 @@ document
 
                 filterProducts(category);
 
+                const productsSection =
+                    document.querySelector(".products-section");
+
+                if (productsSection) {
+                    const header =
+                        document.querySelector("header");
+
+                    const headerHeight =
+                        header
+                        ? header.getBoundingClientRect().height
+                        : 0;
+
+                    const top =
+                        productsSection.getBoundingClientRect().top
+                        + window.scrollY
+                        - headerHeight
+                        - 12;
+
+                    window.scrollTo({
+                        top: Math.max(0, top),
+                        behavior: "smooth"
+                    });
+                }
+
                 const newUrl =
                     category === "all"
                     ?
