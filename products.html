@@ -1361,7 +1361,11 @@
             }
         }
 
-    </style>
+    
+.photo-caption{position:absolute;left:50%;bottom:18px;transform:translate(-50%,8px);max-width:75%;padding:7px 13px;border-radius:999px;background:rgba(0,0,0,.58);color:#fff;font-size:14px;font-weight:700;line-height:1.3;text-align:center;opacity:0;pointer-events:none;transition:opacity .2s ease,transform .2s ease;z-index:4}
+.main-photo:hover .photo-caption,.main-photo.image-interacting .photo-caption{opacity:1;transform:translate(-50%,0)}
+@media(max-width:600px){.photo-caption{bottom:14px;font-size:13px}}
+</style>
 
 </head>
 
@@ -2070,6 +2074,12 @@ function openProduct(id) {
     }
 
     const subsidyData = parseSubsidy(product.subsidy);
+    let imageNotes = [];
+    const imageNoteMeta = (Array.isArray(product.features) ? product.features : []).find(item => typeof item === "string" && item.startsWith("__IMAGE_NOTES__"));
+    if (imageNoteMeta) {
+        try { imageNotes = JSON.parse(imageNoteMeta.slice("__IMAGE_NOTES__".length)) || []; }
+        catch (error) { imageNotes = []; }
+    }
 
     const images =
         Array.isArray(product.image_urls)
@@ -2118,6 +2128,7 @@ function openProduct(id) {
                             id="mainPhotoImage"
                             src="${escapeAttribute(firstImage)}"
                             alt="${escapeAttribute(product.name)}">
+                        <div class="photo-caption" id="photoCaption" ${imageNotes[0] ? "" : "hidden"}>${escapeHTML(imageNotes[0] || "")}</div>
 
                         ${
                             images.length > 1
@@ -2322,6 +2333,18 @@ function openProduct(id) {
         if (mainImage) {
             mainImage.src =
                 modalImages[modalImageIndex];
+        }
+        const caption = document.getElementById("photoCaption");
+        if (caption) {
+            const note = imageNotes[modalImageIndex] || "";
+            caption.textContent = note;
+            caption.hidden = !note;
+        }
+        const mainPhoto = document.querySelector(".main-photo");
+        if (mainPhoto) {
+            mainPhoto.classList.add("image-interacting");
+            clearTimeout(mainPhoto._captionTimer);
+            mainPhoto._captionTimer = setTimeout(() => mainPhoto.classList.remove("image-interacting"), 1400);
         }
 
         document
