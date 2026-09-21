@@ -2026,6 +2026,42 @@ function buildVariantTable(variants) {
 }
 
 
+
+function parseSubsidy(value) {
+    if (!value) {
+        return {
+            long_term_care: "",
+            disability: ""
+        };
+    }
+
+    if (typeof value === "object") {
+        return {
+            long_term_care: value.long_term_care || "",
+            disability: value.disability || ""
+        };
+    }
+
+    try {
+        const parsed = JSON.parse(value);
+
+        if (parsed && typeof parsed === "object") {
+            return {
+                long_term_care: parsed.long_term_care || "",
+                disability: parsed.disability || ""
+            };
+        }
+    } catch (error) {
+        // 舊資料：尚未拆分的補助內容先視為長照補助，避免資料消失
+    }
+
+    return {
+        long_term_care: String(value),
+        disability: ""
+    };
+}
+
+
 function openProduct(id) {
 
     const product =
@@ -2036,6 +2072,8 @@ function openProduct(id) {
     if (!product) {
         return;
     }
+
+    const subsidyData = parseSubsidy(product.subsidy);
 
     const images =
         Array.isArray(product.image_urls)
@@ -2176,12 +2214,25 @@ function openProduct(id) {
                 </div>
 
                 ${
-                    product.subsidy
+                    subsidyData.long_term_care
                     ?
                     `
                     <div class="modal-subsidy">
-                        符合補助項目：
-                        ${escapeHTML(product.subsidy)}
+                        <strong>長照補助：</strong>
+                        ${escapeHTML(subsidyData.long_term_care)}
+                    </div>
+                    `
+                    :
+                    ""
+                }
+
+                ${
+                    subsidyData.disability
+                    ?
+                    `
+                    <div class="modal-subsidy">
+                        <strong>身障補助：</strong>
+                        ${escapeHTML(subsidyData.disability)}
                     </div>
                     `
                     :
