@@ -1113,6 +1113,25 @@
           .category-grid{grid-template-columns:1fr}
         }
 
+
+        /* ===== 導覽列最終版：只用文字變色 ===== */
+        header nav a {
+            color: #333 !important;
+            background: transparent !important;
+            border-radius: 0 !important;
+            transition: color .22s ease !important;
+        }
+
+        header nav a:hover,
+        header nav a.nav-current {
+            color: #0797d3 !important;
+            background: transparent !important;
+        }
+
+        .nav-indicator {
+            display: none !important;
+        }
+
 </style>
 
 </head>
@@ -1135,14 +1154,8 @@
 
     <nav>
 
-        <div class="nav-indicator"></div>
-
         <a href="#home">
             首頁
-        </a>
-
-        <a href="#about">
-            關於我們
         </a>
 
         <a href="#categories">
@@ -1273,7 +1286,7 @@
 </section>
 
 
-<!-- FEATURED PRODUCTS -->
+
 
 <section class="featured" id="products">
 
@@ -1305,9 +1318,7 @@
 
     <div class="all-product-button">
 
-        <a href="products.html">
-            查看全部產品
-        </a>
+        
 
     </div>
 
@@ -1741,11 +1752,6 @@ document.addEventListener("DOMContentLoaded", function () {
         });
 
         link.classList.add("nav-current");
-
-        if (indicator && window.innerWidth > 750) {
-            indicator.style.width = link.offsetWidth + "px";
-            indicator.style.left = link.offsetLeft + "px";
-        }
     }
 
     function updateActiveNav() {
