@@ -28,6 +28,17 @@ main{width:92%;max-width:1280px;margin:32px auto 70px}.top{display:flex;justify-
 .copy-variant{border:0;background:#eef7fb;color:#176182;border-radius:7px;padding:8px 12px;font-weight:700}
 .copy-variant:hover{background:#dff1f8}
 @media(max-width:760px){.grid{grid-template-columns:1fr}.span2{grid-column:auto}.row2,.row1{grid-template-columns:1fr}header,.top{align-items:flex-start;flex-direction:column}}
+
+.filters{
+  display:grid;
+  grid-template-columns:minmax(260px,1fr) 230px;
+  gap:12px;
+  margin:0 0 16px;
+}
+.filters input,.filters select{background:#fff}
+.filter-count{margin:-5px 0 14px;color:#78909c;font-size:13px}
+@media(max-width:760px){.filters{grid-template-columns:1fr}}
+
 </style>
 </head>
 <body>
@@ -59,9 +70,25 @@ main{width:92%;max-width:1280px;margin:32px auto 70px}.top{display:flex;justify-
 </div>
 
 <div class="sort-note">☰ 可直接拖曳商品調整順序；排序欄也可手動輸入數字，系統會自動避免重複順序。</div>
+<div class="filters">
+  <input id="productSearch" type="search" placeholder="搜尋商品名稱">
+  <select id="categoryFilter">
+    <option value="all">全部分類</option>
+    <option value="aluminum-wheelchair">鋁製輪椅</option>
+    <option value="steel-wheelchair">鐵製輪椅</option>
+    <option value="rollator">助步車</option>
+    <option value="commode-chair">便椅</option>
+    <option value="shower-chair">洗澡椅</option>
+    <option value="walker">助行器</option>
+    <option value="cane-crutch">手／拐杖</option>
+    <option value="quad-cane">四腳拐</option>
+    <option value="accessories">輔助用品</option>
+  </select>
+</div>
+<div id="filterCount" class="filter-count"></div>
 <div class="table-wrap">
 <table>
-<thead><tr><th>順序</th><th>圖片</th><th>商品</th><th>分類</th><th>熱賣</th><th>狀態</th><th>操作</th></tr></thead>
+<thead><tr><th>順序</th><th>圖片</th><th>商品</th><th>分類</th><th>狀態</th><th>操作</th></tr></thead>
 <tbody id="tbody"></tbody>
 </table>
 </div>
@@ -85,20 +112,14 @@ main{width:92%;max-width:1280px;margin:32px auto 70px}.top{display:flex;justify-
 <option value="accessories">輔助用品</option>
 </select>
 </div>
-<div class="field span2"><label>商品簡介</label><textarea id="short"></textarea></div>
 <div class="field span2"><label>詳細介紹</label><textarea id="desc"></textarea></div>
-<div class="field"><label>補助項目</label><input id="subsidy" placeholder="例如：輪椅-B款・附加A"></div>
+<div class="field"><label>長照補助</label><input id="ltcSubsidy" placeholder="輸入長照補助名稱／項次"></div>
+<div class="field"><label>身障補助</label><input id="disabilitySubsidy" placeholder="輸入身障補助名稱／項次"></div>
 <div class="field"><label>排序</label><input id="sort" type="number" value="0"></div>
 </div>
 
 <div class="checks">
-<label><input id="featured" type="checkbox"> 設為熱賣商品</label>
 <label><input id="active" type="checkbox" checked> 商品上架</label>
-</div>
-
-<div class="section">
-<div class="section-head"><h3>商品特色</h3><button id="addFeature" class="soft">＋ 新增特色</button></div>
-<div id="features"></div>
 </div>
 
 <div class="section">
@@ -165,24 +186,79 @@ showAdmin();
 $("password").addEventListener("keydown",e=>{if(e.key==="Enter")$("loginBtn").click()});
 $("logoutBtn").onclick=async()=>{await db.auth.signOut();showLogin()};
 
+$("productSearch").addEventListener("input",renderProductTable);
+$("categoryFilter").addEventListener("change",renderProductTable);
+
+
 const cname=c=>({"aluminum-wheelchair":"鋁製輪椅","steel-wheelchair":"鐵製輪椅","rollator":"助步車","commode-chair":"便椅","shower-chair":"洗澡椅","walker":"助行器","cane-crutch":"手／拐杖","quad-cane":"四腳拐","accessories":"輔助用品"}[c]||c);
 const esc=s=>String(s||"").replace(/[&<>"']/g,m=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#039;"}[m]));
 
+function parseSubsidy(value){
+  if(!value)return {long_term_care:"",disability:""};
+  if(typeof value==="object"){
+    return {
+      long_term_care:value.long_term_care||"",
+      disability:value.disability||""
+    };
+  }
+  try{
+    const obj=JSON.parse(value);
+    if(obj && typeof obj==="object"){
+      return {
+        long_term_care:obj.long_term_care||"",
+        disability:obj.disability||""
+      };
+    }
+  }catch(e){}
+  /* 舊資料尚未拆分時，先保留在長照補助，避免內容消失 */
+  return {long_term_care:String(value),disability:""};
+}
+function buildSubsidy(){
+  return JSON.stringify({
+    long_term_care:$("ltcSubsidy").value.trim(),
+    disability:$("disabilitySubsidy").value.trim()
+  });
+}
+
+
 async function load(){
-$("tbody").innerHTML='<tr><td colspan="7">載入中...</td></tr>';
+$("tbody").innerHTML='<tr><td colspan="6">載入中...</td></tr>';
 const {data,error}=await db.from("products").select("*").order("sort_order",{ascending:true}).order("created_at",{ascending:true});
-if(error)return $("tbody").innerHTML='<tr><td colspan="7">讀取失敗：'+esc(error.message)+'</td></tr>';
+if(error)return $("tbody").innerHTML='<tr><td colspan="6">讀取失敗：'+esc(error.message)+'</td></tr>';
 productsCache=data||[];
-$("tbody").innerHTML=productsCache.length?"":'<tr><td colspan="7">目前沒有商品</td></tr>';
-productsCache.forEach((p,index)=>{
- const tr=document.createElement("tr"),img=p.image_urls?.[0]||"";
- tr.draggable=true;tr.dataset.id=p.id;
- tr.innerHTML=`<td><span class="sort-badge">${Number(p.sort_order)||index+1}</span></td><td>${img?`<img class="thumb" src="${esc(img)}">`:"無圖片"}</td><td>${esc(p.name)}</td><td>${cname(p.category)}</td><td>${p.featured?'<span class="hot">熱賣</span>':"-"}</td><td><span class="status ${p.is_active?"on":""}">${p.is_active?"上架":"下架"}</span></td><td><div class="actions"><button data-e="${p.id}">編輯</button><button data-d="${p.id}">刪除</button></div></td>`;
- $("tbody").appendChild(tr);
-});
-document.querySelectorAll("[data-e]").forEach(b=>b.onclick=()=>edit(b.dataset.e));
-document.querySelectorAll("[data-d]").forEach(b=>b.onclick=()=>del(b.dataset.d));
-setupDragSort();
+renderProductTable();
+}
+
+function renderProductTable(){
+ const keyword=($("productSearch")?.value||"").trim().toLowerCase();
+ const category=$("categoryFilter")?.value||"all";
+
+ const filtered=productsCache.filter(p=>{
+   const matchName=!keyword || String(p.name||"").toLowerCase().includes(keyword);
+   const matchCategory=category==="all" || p.category===category;
+   return matchName && matchCategory;
+ });
+
+ $("filterCount").textContent=`顯示 ${filtered.length} / ${productsCache.length} 件商品`;
+ $("tbody").innerHTML=filtered.length?"":'<tr><td colspan="6">找不到符合條件的商品</td></tr>';
+
+ filtered.forEach((p,index)=>{
+   const tr=document.createElement("tr"),img=p.image_urls?.[0]||"";
+   tr.draggable=true;
+   tr.dataset.id=p.id;
+   tr.innerHTML=`<td><span class="sort-badge">${Number(p.sort_order)||index+1}</span></td><td>${img?`<img class="thumb" src="${esc(img)}">`:"無圖片"}</td><td>${esc(p.name)}</td><td>${cname(p.category)}</td><td><span class="status ${p.is_active?"on":""}">${p.is_active?"上架":"下架"}</span></td><td><div class="actions"><button data-e="${p.id}">編輯</button><button data-d="${p.id}">刪除</button></div></td>`;
+   $("tbody").appendChild(tr);
+ });
+
+ document.querySelectorAll("[data-e]").forEach(b=>b.onclick=()=>edit(b.dataset.e));
+ document.querySelectorAll("[data-d]").forEach(b=>b.onclick=()=>del(b.dataset.d));
+
+ /* 篩選中不啟用拖曳，避免只對部分商品重排造成順序混亂 */
+ if(!keyword && category==="all"){
+   setupDragSort();
+ }else{
+   [...$("tbody").querySelectorAll("tr[data-id]")].forEach(row=>row.draggable=false);
+ }
 }
 
 function setupDragSort(){
@@ -234,11 +310,7 @@ async function nextSortOrder(){
  return (!error&&data?.length)?(Number(data[0].sort_order)||0)+1:1;
 }
 
-function addFeature(v=""){
-const r=document.createElement("div");r.className="row1";
-r.innerHTML='<input class="fv" placeholder="例如：鋁合金材質"><button class="remove">刪除</button>';
-r.querySelector("input").value=v;r.querySelector("button").onclick=()=>r.remove();$("features").appendChild(r);
-}
+
 function addSpec(n="",v=""){
 const r=document.createElement("div");r.className="row2";
 r.innerHTML='<input class="sn" placeholder="規格名稱，例如：座寬"><input class="sv" placeholder="例如：45 cm"><button class="remove">刪除</button>';
@@ -317,7 +389,6 @@ value:r.querySelector(".vsv").value.trim()
 
 addVariant("",specs);
 }
-$("addFeature").onclick=()=>addFeature();
 $("addSpec").onclick=()=>addSpec();
 $("addVariant").onclick=()=>addVariant();
 $("addVariantLikeFirst").onclick=()=>addVariantLikeFirst();
@@ -367,13 +438,13 @@ $("files").value="";
 }
 
 async function reset(useDefaults=true){
-["id","name","short","desc","subsidy"].forEach(x=>$(x).value="");
-$("category").value="aluminum-wheelchair";
-$("sort").value=await nextSortOrder();
-$("featured").checked=false;$("active").checked=true;
-$("features").innerHTML="";$("specs").innerHTML="";$("variants").innerHTML="";
-images=[];originalImages=[];renderImages();$("saveMsg").textContent="";
-addFeature();if(useDefaults)defaults();
+  ["id","name","desc","ltcSubsidy","disabilitySubsidy"].forEach(x=>$(x).value="");
+  $("category").value="aluminum-wheelchair";
+  $("sort").value=await nextSortOrder();
+  $("active").checked=true;
+  $("specs").innerHTML="";$("variants").innerHTML="";
+  images=[];originalImages=[];renderImages();$("saveMsg").textContent="";
+  if(useDefaults)defaults();
 }
 $("newBtn").onclick=async()=>{await reset();$("editorTitle").textContent="新增商品";$("editor").classList.remove("hidden");$("editor").scrollIntoView({behavior:"smooth"})};
 $("closeBtn").onclick=()=>$("editor").classList.add("hidden");
@@ -383,12 +454,11 @@ const btn=$("saveBtn");btn.disabled=true;btn.textContent="儲存中...";$("saveM
 try{
  await upload();
  const name=$("name").value.trim();if(!name)throw new Error("請輸入商品名稱");
- const features=[...document.querySelectorAll(".fv")].map(x=>x.value.trim()).filter(Boolean);
  const specs=[...$("specs").querySelectorAll(".row2")].map(r=>({name:r.querySelector(".sn").value.trim(),value:r.querySelector(".sv").value.trim()})).filter(x=>x.name&&x.value);
  const variants=getVariants();
  const desired=Math.max(1,Number($("sort").value)||1);
  const editingId=$("id").value;
- const item={name,category:$("category").value,short_description:$("short").value.trim(),description:$("desc").value.trim(),subsidy:$("subsidy").value.trim(),sort_order:desired,featured:$("featured").checked,is_active:$("active").checked,features,specs,variants,image_urls:images};
+ const item={name,category:$("category").value,description:$("desc").value.trim(),subsidy:buildSubsidy(),sort_order:desired,is_active:$("active").checked,specs,variants,image_urls:images};
  let savedId=editingId;
  if(editingId){
   const {error}=await db.from("products").update(item).eq("id",editingId);if(error)throw error;
@@ -411,10 +481,13 @@ const {data,error}=await db.from("products").select("*").eq("id",id).single();
 if(error)return alert("讀取商品失敗："+error.message);
 await reset(false);
 $("id").value=data.id;$("name").value=data.name||"";$("category").value=data.category||"aluminum-wheelchair";
-$("short").value=data.short_description||"";$("desc").value=data.description||"";$("subsidy").value=data.subsidy||"";
-$("sort").value=data.sort_order||1;$("featured").checked=!!data.featured;$("active").checked=!!data.is_active;
+$("desc").value=data.description||"";
+const subsidyData=parseSubsidy(data.subsidy);
+$("ltcSubsidy").value=subsidyData.long_term_care;
+$("disabilitySubsidy").value=subsidyData.disability;
+$("sort").value=data.sort_order||1;$("active").checked=!!data.is_active;
 images=[...(data.image_urls||[])];originalImages=[...(data.image_urls||[])];renderImages();
-(data.features||[]).forEach(addFeature);(data.specs||[]).forEach(s=>addSpec(s.name,s.value));(data.variants||[]).forEach(v=>addVariant(v.model||"",v.specs||[]));
+(data.specs||[]).forEach(s=>addSpec(s.name,s.value));(data.variants||[]).forEach(v=>addVariant(v.model||"",v.specs||[]));
 $("editorTitle").textContent="編輯商品";$("editor").classList.remove("hidden");$("editor").scrollIntoView({behavior:"smooth"});
 }
 
