@@ -45,6 +45,8 @@ main{width:92%;max-width:1280px;margin:32px auto 70px}.top{display:flex;justify-
 .preview .image-box{height:110px;position:relative;border:1px solid #dfe7ea;border-radius:8px;overflow:hidden;background:#f8fafb}
 .preview .image-box img{width:100%;height:100%;object-fit:contain}
 .preview .image-box button{position:absolute;top:4px;right:4px;border:0;border-radius:50%;width:25px;height:25px;background:#0009;color:white}
+
+.admin-message-list{display:grid;gap:14px;margin-top:18px}.admin-message-card{padding:18px;border:1px solid #dce7eb;border-radius:12px;background:#f8fbfc}.admin-message-head{display:flex;justify-content:space-between;gap:12px;margin-bottom:10px}.admin-message-name{font-weight:800;color:#17465c}.admin-message-date{font-size:13px;color:#78909c}.admin-message-text{white-space:pre-wrap;line-height:1.7;color:#526b76}.admin-reply{width:100%;min-height:90px;margin-top:14px;padding:10px;border:1px solid #cfdee5;border-radius:8px;font:inherit}.admin-message-actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px}.danger{border:0;background:#fff0ee;color:#b32a1f;border-radius:7px;padding:8px 12px}.public-badge{font-size:12px;padding:4px 8px;border-radius:999px;background:#e5f6ec;color:#19734a}.private-badge{font-size:12px;padding:4px 8px;border-radius:999px;background:#eee;color:#607d8b}
 </style>
 </head>
 <body>
@@ -156,6 +158,10 @@ main{width:92%;max-width:1280px;margin:32px auto 70px}.top{display:flex;justify-
 <div style="margin-top:24px;text-align:right"><button id="saveBtn" class="primary">儲存商品</button></div>
 <div id="saveMsg" class="msg"></div>
 </section>
+<section class="card" id="messageManager" style="margin-top:28px">
+<div class="top"><div><h2>留言管理</h2><p>回覆、公開、隱藏或刪除客人留言</p></div><button id="refreshMessages" class="soft">重新整理</button></div>
+<div id="adminMessageList" class="admin-message-list"><div class="msg">留言載入中…</div></div>
+</section>
 </main>
 </div>
 
@@ -167,6 +173,7 @@ const db=supabase.createClient(SUPABASE_URL,SUPABASE_KEY);
 
 const $=id=>document.getElementById(id);
 let images=[];
+let imageNotes=[];
 let originalImages=[];
 let productsCache=[];
 let draggedRow=null;
@@ -191,6 +198,26 @@ showAdmin();
 };
 $("password").addEventListener("keydown",e=>{if(e.key==="Enter")$("loginBtn").click()});
 $("logoutBtn").onclick=async()=>{await db.auth.signOut();showLogin()};
+
+async function loadMessages(){
+ const host=$("adminMessageList"); if(!host)return;
+ const {data,error}=await db.from("guestbook_messages").select("*").order("created_at",{ascending:false});
+ if(error){host.innerHTML='<div class="error">讀取留言失敗：'+esc(error.message)+'</div>';return}
+ if(!data?.length){host.innerHTML='<div class="msg">目前沒有留言</div>';return}
+ host.innerHTML="";
+ data.forEach(m=>{
+  const card=document.createElement("div");card.className="admin-message-card";
+  const date=new Date(m.created_at).toLocaleString("zh-TW");
+  card.innerHTML=`<div class="admin-message-head"><div><span class="admin-message-name">${esc(m.name)}</span> <span class="${m.is_public?"public-badge":"private-badge"}">${m.is_public?"已公開":"未公開"}</span></div><span class="admin-message-date">${esc(date)}</span></div><div class="admin-message-text">${esc(m.message)}</div><textarea class="admin-reply" placeholder="輸入富致康回覆">${esc(m.reply||"")}</textarea><div class="admin-message-actions"><button class="soft save-reply">儲存回覆</button><button class="soft toggle-public">${m.is_public?"隱藏留言":"公開留言"}</button><button class="danger delete-message">刪除</button></div>`;
+  card.querySelector(".save-reply").onclick=async()=>{const reply=card.querySelector(".admin-reply").value.trim();const {error}=await db.from("guestbook_messages").update({reply,updated_at:new Date().toISOString()}).eq("id",m.id);if(error)alert("儲存失敗："+error.message);else{alert("回覆已儲存");loadMessages()}};
+  card.querySelector(".toggle-public").onclick=async()=>{const {error}=await db.from("guestbook_messages").update({is_public:!m.is_public,updated_at:new Date().toISOString()}).eq("id",m.id);if(error)alert("更新失敗："+error.message);else loadMessages()};
+  card.querySelector(".delete-message").onclick=async()=>{if(!confirm("確定刪除這則留言？"))return;const {error}=await db.from("guestbook_messages").delete().eq("id",m.id);if(error)alert("刪除失敗："+error.message);else loadMessages()};
+  host.appendChild(card);
+ });
+}
+$("refreshMessages").onclick=loadMessages;
+
+setTimeout(()=>{if(!$("adminPage").classList.contains("hidden"))loadMessages()},300);
 
 $("productSearch").addEventListener("input",renderProductTable);
 $("categoryFilter").addEventListener("change",renderProductTable);
