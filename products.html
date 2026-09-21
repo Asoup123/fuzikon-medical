@@ -1436,7 +1436,6 @@
 
             <div class="products-heading">
                 <h1 id="category-title">全部產品</h1>
-                <p id="category-description">富致康醫療器材產品一覽</p>
             </div>
 
             <div class="product-grid" id="productGrid">
@@ -1589,8 +1588,6 @@ const productGrid =
 const title =
     document.getElementById("category-title");
 
-const description =
-    document.getElementById("category-description");
 
 const modal =
     document.getElementById("productModal");
@@ -1749,7 +1746,6 @@ function filterProducts(category) {
 
     if (categoryText[activeCategory]) {
         title.textContent = categoryText[activeCategory][0];
-        description.textContent = categoryText[activeCategory][1];
     }
 
     const keyword =
