@@ -1132,6 +1132,28 @@
             display: none !important;
         }
 
+
+        /* ===== 首頁分類：凸顯「全部商品」 ===== */
+        .category-card.all-products-card {
+            background: linear-gradient(135deg, #0797d3, #087aa5) !important;
+            border-color: transparent !important;
+            box-shadow: 0 10px 24px rgba(7, 151, 211, .18);
+        }
+
+        .category-card.all-products-card h3 {
+            color: #fff !important;
+        }
+
+        .category-card.all-products-card::after {
+            background: rgba(255,255,255,.13) !important;
+        }
+
+        .category-card.all-products-card:hover {
+            transform: translateY(-4px);
+            background: linear-gradient(135deg, #078bc2, #066f97) !important;
+            box-shadow: 0 14px 28px rgba(7, 151, 211, .24);
+        }
+
 </style>
 
 </head>
@@ -1240,7 +1262,7 @@
     </div>
 
     <div class="category-grid">
-            <a href="products.html" class="category-card">
+            <a href="products.html" class="category-card all-products-card">
                 <h3>全部商品</h3>
             </a>
 
@@ -1735,13 +1757,7 @@ document.addEventListener("DOMContentLoaded", function () {
         nav.querySelectorAll('a[href^="#"]')
     );
 
-    const sectionIds = [
-        "home",
-        "about",
-        "categories",
-        "products",
-        "contact"
-    ];
+    const sectionIds = ["home","categories","contact"];
 
     function moveIndicator(link) {
 
@@ -1755,23 +1771,40 @@ document.addEventListener("DOMContentLoaded", function () {
     }
 
     function updateActiveNav() {
+            const scrollPosition = window.scrollY + 180;
 
-        const scrollPosition =
-            window.scrollY + 180;
+            const categoriesSection = document.getElementById("categories");
+            const contactSection = document.getElementById("contact");
 
-        let currentId = "home";
-
-        sectionIds.forEach(function (id) {
-
-            const section =
-                document.getElementById(id);
+            let currentId = "home";
 
             if (
-                section &&
-                section.offsetTop <= scrollPosition
+                categoriesSection &&
+                categoriesSection.offsetTop <= scrollPosition
             ) {
-                currentId = id;
+                currentId = "categories";
             }
+
+            if (
+                contactSection &&
+                contactSection.offsetTop <= scrollPosition
+            ) {
+                currentId = "contact";
+            }
+
+            if (
+                window.innerHeight + window.scrollY >=
+                document.documentElement.scrollHeight - 10
+            ) {
+                currentId = "contact";
+            }
+
+            const currentLink = links.find(function (link) {
+                return link.getAttribute("href") === "#" + currentId;
+            });
+
+            moveIndicator(currentLink);
+        }
 
         });
 
