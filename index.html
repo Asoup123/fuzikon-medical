@@ -991,7 +991,7 @@
             box-shadow: 0 14px 28px rgba(7, 151, 211, .24);
         }
 
-</style>
+.news-section,.guestbook-section{padding:76px 8%}.news-section{background:#f7fafb}.news-list{max-width:1120px;margin:34px auto 0}.news-card{padding:24px;background:#fff;border:1px solid #e2ebef;border-radius:14px;box-shadow:0 8px 24px rgba(18,73,96,.06)}.news-date{margin-bottom:10px;color:#0797d3;font-size:13px;font-weight:800}.news-card h3{margin:0 0 10px;color:#17465c}.news-card p,.guestbook-info p{color:#687d87;line-height:1.8}.guestbook-wrap{max-width:1000px;margin:34px auto 0;display:grid;grid-template-columns:1.45fr .75fr;gap:24px}.guestbook-form,.guestbook-info{padding:28px;border:1px solid #e1eaee;border-radius:14px;background:#f9fbfc}.guestbook-form label{display:block;margin-bottom:18px;color:#17465c;font-weight:800}.guestbook-form input,.guestbook-form textarea{display:block;width:100%;margin-top:8px;padding:13px 14px;border:1px solid #cfdee5;border-radius:9px;background:#fff;font:inherit}.guestbook-form textarea{min-height:150px;resize:vertical}.guestbook-form button{border:0;border-radius:8px;padding:12px 22px;background:#0797d3;color:#fff;font-weight:800;cursor:pointer}.guestbook-info a{display:inline-block;padding:10px 16px;border-radius:8px;background:#e8f7fc;color:#0797d3;font-weight:800}#guestbookStatus{min-height:24px;margin-top:12px;color:#176182;font-size:14px}@media(max-width:900px){.guestbook-wrap{grid-template-columns:1fr}}</style>
 
 </head>
 
@@ -1144,37 +1144,22 @@
 
 </section>
 
-<!-- REPAIR -->
-
-<section class="repair">
-
-    <div class="repair-container">
-
-        <div>
-
-            <h2>
-                輔具維修服務
-            </h2>
-
-            <p>
-                富致康提供各式醫療輔具與相關設備之檢查及維修服務。
-                如有輪椅、助行輔具或其他產品維修需求，
-                歡迎來電洽詢。
-            </p>
-
-        </div>
-
-        <div>
-
-            <a href="tel:034393948">
-                洽詢維修
-            </a>
-
-        </div>
-
-    </div>
-
+<!-- NEWS -->
+<section class="news-section" id="news">
+<div class="section-title"><span>NEWS</span><h2>最新消息</h2><p>門市公告、活動資訊與最新服務消息</p></div>
+<div class="news-list"><article class="news-card"><div class="news-date">2026 / 09 / 21</div><h3>富致康最新消息專區上線</h3><p>最新公告、營業資訊與相關消息將陸續更新於此。</p></article></div>
 </section>
+<!-- GUESTBOOK -->
+<section class="guestbook-section" id="guestbook">
+<div class="section-title"><span>MESSAGE BOARD</span><h2>留言板</h2><p>有產品或服務相關問題，歡迎留下訊息</p></div>
+<div class="guestbook-wrap">
+<form class="guestbook-form" id="guestbookForm">
+<label>姓名／稱呼<input id="guestName" maxlength="40" required placeholder="請輸入姓名或稱呼"></label>
+<label>留言內容<textarea id="guestMessage" maxlength="500" required placeholder="請輸入您的問題或留言"></textarea></label>
+<button type="submit">送出留言</button><div id="guestbookStatus"></div>
+</form>
+<div class="guestbook-info"><h3>需要立即協助？</h3><p>若有急需確認的商品、輔具或維修問題，也可以直接來電與我們聯繫。</p><a href="tel:034393948">03-439-3948</a></div>
+</div></section>
 
 
 <!-- CONTACT -->
@@ -1438,6 +1423,18 @@ document.addEventListener("DOMContentLoaded", function () {
 });
 </script>
 
-</body>
+<script>
+(function(){
+const form=document.getElementById("guestbookForm");if(!form)return;
+form.addEventListener("submit",async e=>{
+e.preventDefault();const name=document.getElementById("guestName").value.trim(),message=document.getElementById("guestMessage").value.trim(),status=document.getElementById("guestbookStatus"),btn=form.querySelector("button");
+if(!name||!message){status.textContent="請填寫姓名／稱呼與留言內容。";return}
+if(typeof homeDb==="undefined"){status.textContent="留言系統尚未連線，請直接來電與我們聯繫。";return}
+btn.disabled=true;status.textContent="留言送出中…";
+const {error}=await homeDb.from("guestbook_messages").insert({name,message,is_public:false});
+btn.disabled=false;if(error){console.error(error);status.textContent="留言目前無法送出，請稍後再試或直接來電洽詢。";return}
+form.reset();status.textContent="留言已送出，謝謝您的訊息。";
+});})();
+</script></body>
 
 </html>
