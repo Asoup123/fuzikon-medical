@@ -39,6 +39,34 @@ main{width:92%;max-width:1280px;margin:32px auto 70px}.top{display:flex;justify-
 .filter-count{margin:-5px 0 14px;color:#78909c;font-size:13px}
 @media(max-width:760px){.filters{grid-template-columns:1fr}}
 
+
+.drag-handle{
+  border:0;background:transparent;color:#7b98a6;
+  font-size:22px;line-height:1;cursor:grab;padding:8px 6px;
+  user-select:none;touch-action:none
+}
+.drag-handle:active{cursor:grabbing}
+.variant-card.dragging,.variant-spec-row.dragging{opacity:.42}
+.variant-card.drag-over,.variant-spec-row.drag-over{
+  outline:2px dashed #0797d3;outline-offset:3px
+}
+.variant-top{grid-template-columns:auto 1fr auto!important}
+.variant-spec-row{grid-template-columns:auto 1fr 1fr auto!important}
+@media(max-width:760px){
+  .variant-top{grid-template-columns:auto 1fr!important}
+  .variant-top .remove-variant{grid-column:2}
+  .variant-spec-row{grid-template-columns:auto 1fr!important}
+  .variant-spec-row .vsv,.variant-spec-row .remove{grid-column:2}
+}
+
+
+.common-spec-row{grid-template-columns:auto 1fr 1fr auto!important}
+.common-spec-row.dragging{opacity:.42}
+.common-spec-row.drag-over{outline:2px dashed #0797d3;outline-offset:3px}
+@media(max-width:760px){
+ .common-spec-row{grid-template-columns:auto 1fr!important}
+ .common-spec-row .sv,.common-spec-row .remove{grid-column:2}
+}
 </style>
 </head>
 <body>
@@ -311,19 +339,74 @@ async function nextSortOrder(){
 }
 
 
+
+function enableDragSort(container,itemSelector,handleSelector){
+  if(!container || container.dataset.dragSortReady===itemSelector)return;
+
+  let dragged=null;
+
+  container.addEventListener("dragstart",e=>{
+    const handle=e.target.closest(handleSelector);
+    const item=e.target.closest(itemSelector);
+    if(!handle || !item || item.parentElement!==container){
+      e.preventDefault();
+      return;
+    }
+    dragged=item;
+    item.classList.add("dragging");
+    e.dataTransfer.effectAllowed="move";
+    e.dataTransfer.setData("text/plain","move");
+  });
+
+  container.addEventListener("dragover",e=>{
+    if(!dragged)return;
+    const target=e.target.closest(itemSelector);
+    if(!target || target===dragged || target.parentElement!==container)return;
+    e.preventDefault();
+    [...container.querySelectorAll(itemSelector)].forEach(x=>x.classList.remove("drag-over"));
+    target.classList.add("drag-over");
+    const rect=target.getBoundingClientRect();
+    const after=e.clientY > rect.top + rect.height/2;
+    container.insertBefore(dragged,after ? target.nextSibling : target);
+  });
+
+  container.addEventListener("drop",e=>{
+    if(dragged)e.preventDefault();
+  });
+
+  container.addEventListener("dragend",()=>{
+    [...container.querySelectorAll(itemSelector)].forEach(x=>x.classList.remove("dragging","drag-over"));
+    dragged=null;
+  });
+
+  container.addEventListener("mousedown",e=>{
+    const item=e.target.closest(itemSelector);
+    if(!item || item.parentElement!==container)return;
+    item.draggable=!!e.target.closest(handleSelector);
+  });
+
+  container.addEventListener("mouseup",()=>{
+    [...container.querySelectorAll(itemSelector)].forEach(x=>x.draggable=false);
+  });
+
+  container.dataset.dragSortReady=itemSelector;
+}
+
 function addSpec(n="",v=""){
-const r=document.createElement("div");r.className="row2";
-r.innerHTML='<input class="sn" placeholder="規格名稱，例如：座寬"><input class="sv" placeholder="例如：45 cm"><button class="remove">刪除</button>';
-r.querySelector(".sn").value=n;r.querySelector(".sv").value=v;r.querySelector("button").onclick=()=>r.remove();$("specs").appendChild(r);
+const r=document.createElement("div");r.className="row2 common-spec-row";
+r.innerHTML='<button type="button" class="drag-handle common-spec-drag" title="拖曳調整規格順序" aria-label="拖曳調整規格順序">☰</button><input class="sn" placeholder="規格名稱，例如：座寬"><input class="sv" placeholder="例如：45 cm"><button class="remove">刪除</button>';
+r.querySelector(".sn").value=n;r.querySelector(".sv").value=v;r.querySelector(".remove").onclick=()=>r.remove();$("specs").appendChild(r);
+enableDragSort($("specs"),".common-spec-row",".common-spec-drag");
 }
 
 function addVariantSpec(container,n="",v=""){
 const r=document.createElement("div");r.className="row2 variant-spec-row";
-r.innerHTML='<input class="vsn" placeholder="規格名稱，例如：座寬"><input class="vsv" placeholder="例如：42cm"><button type="button" class="remove">刪除</button>';
+r.innerHTML='<button type="button" class="drag-handle spec-drag" title="拖曳調整規格順序" aria-label="拖曳調整規格順序">☰</button><input class="vsn" placeholder="規格名稱，例如：座寬"><input class="vsv" placeholder="例如：42cm"><button type="button" class="remove">刪除</button>';
 r.querySelector(".vsn").value=n;
 r.querySelector(".vsv").value=v;
 r.querySelector(".remove").onclick=()=>r.remove();
 container.appendChild(r);
+enableDragSort(container,".variant-spec-row",".spec-drag");
 }
 
 function addVariant(model="",specs=null){
@@ -331,6 +414,7 @@ const card=document.createElement("div");
 card.className="variant-card";
 card.innerHTML=`
    <div class="variant-top">
+     <button type="button" class="drag-handle variant-drag" title="拖曳調整型號順序" aria-label="拖曳調整型號順序">☰</button>
      <div class="field" style="margin:0">
        <label>型號／尺寸名稱</label>
        <input class="variant-model" placeholder="例如：AC1616">
@@ -356,6 +440,7 @@ value:r.querySelector(".vsv").value.trim()
 addVariant(currentModel ? currentModel + "-copy" : "", currentSpecs);
 };
 $("variants").appendChild(card);
+enableDragSort($("variants"),".variant-card",".variant-drag");
 
 if(Array.isArray(specs) && specs.length){
 specs.forEach(s=>addVariantSpec(box,s.name||"",s.value||""));
