@@ -1018,34 +1018,114 @@
   .news-card-image img{height:210px;min-height:0;max-height:none}
 }
 
+
+/* ===== 全站共用固定導覽列 ===== */
+html{scroll-padding-top:96px}
+body{overflow-x:hidden}
+header.site-header{
+  min-height:88px;
+  padding:12px clamp(24px,6vw,100px);
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:28px;
+  position:sticky;
+  top:0;
+  z-index:5000;
+  background:rgba(255,255,255,.97);
+  box-shadow:0 3px 18px rgba(0,0,0,.06);
+  backdrop-filter:blur(10px);
+}
+.site-header .logo{
+  display:flex;
+  align-items:center;
+  gap:14px;
+  min-width:0;
+  flex:0 1 auto;
+  color:#0797d3;
+  font-size:22px;
+  font-weight:800;
+  white-space:nowrap;
+}
+.site-header .logo img{
+  height:54px;
+  width:auto;
+  display:block;
+  flex:0 0 auto;
+}
+.site-header nav{
+  margin-left:auto;
+  display:flex;
+  align-items:center;
+  gap:clamp(14px,2vw,42px);
+  min-width:0;
+  white-space:nowrap;
+}
+.site-header nav a{
+  position:relative;
+  padding:10px 2px;
+  color:#333;
+  font-size:15px;
+  font-weight:600;
+  transition:.2s ease;
+}
+.site-header nav a:hover,
+.site-header nav a.active{
+  color:#0797d3;
+}
+.site-header nav a.active::after{
+  content:"";
+  position:absolute;
+  left:0;
+  right:0;
+  bottom:3px;
+  height:3px;
+  border-radius:3px;
+  background:#0797d3;
+}
+@media(max-width:900px){
+  header.site-header{
+    min-height:auto;
+    padding:10px 18px;
+    gap:14px;
+    flex-wrap:wrap;
+  }
+  .site-header .logo{font-size:18px}
+  .site-header .logo img{height:46px}
+  .site-header nav{
+    order:2;
+    width:100%;
+    margin-left:0;
+    gap:20px;
+    overflow-x:auto;
+    scrollbar-width:none;
+    padding-bottom:2px;
+  }
+  .site-header nav::-webkit-scrollbar{display:none}
+  .site-header nav a{font-size:14px;flex:0 0 auto}
+}
+@media(max-width:520px){
+  header.site-header{padding:9px 14px}
+  .site-header .logo{font-size:16px;gap:9px}
+  .site-header .logo img{height:42px}
+}
+
+/* 首頁最新消息只顯示近期消息，完整列表請到 news.html */
+.more-news{text-align:center;margin-top:24px}
+.more-news a{display:inline-block;color:#0797d3;font-weight:800}
+
 </style>
 
 </head>
 
 <body>
 
-<header>
-
-    <a href="index.html" class="logo">
-
-        <img
-            src="images/fzk.png"
-            alt="富致康醫療器材 Logo">
-
-        <span>
-            富致康醫療器材
-        </span>
-
-    </a>
-
-    <nav>
-<a href="#home">首頁</a>
-<a href="#categories">產品分類</a>
-<a href="#news">最新消息</a>
-<a href="guestbook.html">留言板</a>
-<a href="#contact">聯絡我們</a>
-</nav>
-
+<header class="site-header">
+  <a href="index.html" class="logo">
+    <img src="images/fzk.png" alt="富致康醫療器材 Logo">
+    <span>富致康醫療器材</span>
+  </a>
+  <nav aria-label="主要導覽"><a href="index.html" class="active">首頁</a><a href="products.html">產品專區</a><a href="news.html">最新消息</a><a href="guestbook.html">留言板</a><a href="index.html#contact">聯絡我們</a></nav>
 </header>
 
 
@@ -1167,6 +1247,7 @@
 <section class="news-section" id="news">
 <div class="section-title"><span>NEWS</span><h2>最新消息</h2></div>
 <div class="news-list" id="homeNewsList"><div class="message-loading">最新消息載入中…</div></div>
+<div class="more-news"><a href="news.html">更多最新消息 →</a></div>
 </section>
 <!-- GUESTBOOK PREVIEW -->
 <section class="guestbook-section" id="guestbook">
@@ -1353,7 +1434,7 @@ const newsDate=v=>{
 };
 async function loadHomeNews(){
  const host=document.getElementById("homeNewsList"); if(!host)return;
- const {data,error}=await publicDb.from("news").select("id,title,content,publish_date,image_url").eq("is_public",true).order("publish_date",{ascending:false}).order("created_at",{ascending:false}).limit(6);
+ const {data,error}=await publicDb.from("news").select("id,title,content,publish_date,image_url").eq("is_public",true).order("publish_date",{ascending:false}).order("created_at",{ascending:false}).limit(3);
  if(error){host.innerHTML='<div class="message-loading">最新消息目前無法載入</div>';return}
  if(!data?.length){host.innerHTML='<div class="message-loading">目前尚無最新消息</div>';return}
  host.innerHTML=data.map(n=>`
