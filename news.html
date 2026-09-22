@@ -1,0 +1,168 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>最新消息｜富致康醫療器材</title>
+<meta name="description" content="富致康醫療器材最新消息、營業公告與服務資訊。">
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+body{font-family:"Microsoft JhengHei","Noto Sans TC",Arial,sans-serif;background:#f6f9fb;color:#333;line-height:1.7}
+a{text-decoration:none}
+
+/* ===== 全站共用固定導覽列 ===== */
+html{scroll-padding-top:96px}
+body{overflow-x:hidden}
+header.site-header{
+  min-height:88px;
+  padding:12px clamp(24px,6vw,100px);
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:28px;
+  position:sticky;
+  top:0;
+  z-index:5000;
+  background:rgba(255,255,255,.97);
+  box-shadow:0 3px 18px rgba(0,0,0,.06);
+  backdrop-filter:blur(10px);
+}
+.site-header .logo{
+  display:flex;
+  align-items:center;
+  gap:14px;
+  min-width:0;
+  flex:0 1 auto;
+  color:#0797d3;
+  font-size:22px;
+  font-weight:800;
+  white-space:nowrap;
+}
+.site-header .logo img{
+  height:54px;
+  width:auto;
+  display:block;
+  flex:0 0 auto;
+}
+.site-header nav{
+  margin-left:auto;
+  display:flex;
+  align-items:center;
+  gap:clamp(14px,2vw,42px);
+  min-width:0;
+  white-space:nowrap;
+}
+.site-header nav a{
+  position:relative;
+  padding:10px 2px;
+  color:#333;
+  font-size:15px;
+  font-weight:600;
+  transition:.2s ease;
+}
+.site-header nav a:hover,
+.site-header nav a.active{
+  color:#0797d3;
+}
+.site-header nav a.active::after{
+  content:"";
+  position:absolute;
+  left:0;
+  right:0;
+  bottom:3px;
+  height:3px;
+  border-radius:3px;
+  background:#0797d3;
+}
+@media(max-width:900px){
+  header.site-header{
+    min-height:auto;
+    padding:10px 18px;
+    gap:14px;
+    flex-wrap:wrap;
+  }
+  .site-header .logo{font-size:18px}
+  .site-header .logo img{height:46px}
+  .site-header nav{
+    order:2;
+    width:100%;
+    margin-left:0;
+    gap:20px;
+    overflow-x:auto;
+    scrollbar-width:none;
+    padding-bottom:2px;
+  }
+  .site-header nav::-webkit-scrollbar{display:none}
+  .site-header nav a{font-size:14px;flex:0 0 auto}
+}
+@media(max-width:520px){
+  header.site-header{padding:9px 14px}
+  .site-header .logo{font-size:16px;gap:9px}
+  .site-header .logo img{height:42px}
+}
+
+.news-main{max-width:1120px;margin:auto;padding:64px 24px 100px}
+.page-title{text-align:center;margin-bottom:42px}
+.page-title span{display:block;color:#0797d3;font-size:13px;font-weight:800;letter-spacing:2px;margin-bottom:6px}
+.page-title h1{color:#164c65;font-size:38px}
+.page-title p{margin-top:8px;color:#7a8a91}
+.news-list{display:grid;gap:22px}
+.news-card{min-width:0;overflow:hidden;background:#fff;border:1px solid #e1eaee;border-radius:16px;padding:26px;box-shadow:0 4px 16px rgba(0,0,0,.025)}
+.news-card.has-image{display:grid;grid-template-columns:minmax(240px,34%) minmax(0,1fr);gap:26px;align-items:stretch}
+.news-image{min-width:0;overflow:hidden;border-radius:12px;background:#f1f6f8}
+.news-image img{display:block;width:100%;height:100%;min-height:210px;max-height:300px;object-fit:cover}
+.news-body{min-width:0}
+.news-date{color:#0797d3;font-size:13px;font-weight:800;margin-bottom:8px}
+.news-card h2{color:#17465c;font-size:24px;margin-bottom:10px;overflow-wrap:anywhere}
+.news-content{color:#536b76;white-space:pre-wrap;overflow-wrap:anywhere;word-break:break-word}
+.empty{padding:48px 20px;text-align:center;background:#fff;border:1px solid #e1eaee;border-radius:16px;color:#78909c}
+@media(max-width:700px){
+  .news-main{padding:44px 16px 70px}
+  .page-title h1{font-size:31px}
+  .news-card{padding:19px}
+  .news-card.has-image{grid-template-columns:1fr}
+  .news-image img{height:220px;min-height:0;max-height:none}
+}
+</style>
+</head>
+<body>
+<header class="site-header">
+  <a href="index.html" class="logo">
+    <img src="images/fzk.png" alt="富致康醫療器材 Logo">
+    <span>富致康醫療器材</span>
+  </a>
+  <nav aria-label="主要導覽"><a href="index.html">首頁</a><a href="products.html">產品專區</a><a href="news.html" class="active">最新消息</a><a href="guestbook.html">留言板</a><a href="index.html#contact">聯絡我們</a></nav>
+</header>
+<main class="news-main">
+  <div class="page-title">
+    <span>NEWS</span>
+    <h1>最新消息</h1>
+    <p>營業公告、服務資訊與富致康最新動態</p>
+  </div>
+  <section class="news-list" id="newsList"><div class="empty">最新消息載入中…</div></section>
+</main>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script>
+const db=supabase.createClient("https://sdkgiedglmhmchiietru.supabase.co","sb_publishable_ofwe1YigppMHJjcWu_VjUA_XF7wNzEm");
+const esc=v=>String(v??"").replace(/[&<>"']/g,m=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#039;"}[m]));
+const fmt=v=>{
+  if(!v)return "";
+  const d=new Date(v+"T00:00:00");
+  return Number.isNaN(d.getTime())?esc(v):d.toLocaleDateString("zh-TW",{year:"numeric",month:"2-digit",day:"2-digit"});
+};
+async function loadNews(){
+  const host=document.getElementById("newsList");
+  const {data,error}=await db.from("news")
+    .select("id,title,content,publish_date,image_url")
+    .eq("is_public",true)
+    .order("publish_date",{ascending:false})
+    .order("created_at",{ascending:false});
+  if(error){host.innerHTML='<div class="empty">最新消息目前無法載入</div>';return}
+  if(!data?.length){host.innerHTML='<div class="empty">目前尚無最新消息</div>';return}
+  host.innerHTML=data.map(n=>`<article class="news-card ${n.image_url?"has-image":""}">${n.image_url?`<div class="news-image"><img src="${esc(n.image_url)}" alt="${esc(n.title)}" loading="lazy"></div>`:""}<div class="news-body"><div class="news-date">${fmt(n.publish_date)}</div><h2>${esc(n.title)}</h2><div class="news-content">${esc(n.content)}</div></div></article>`).join("");
+}
+loadNews();
+</script>
+</body>
+</html>
