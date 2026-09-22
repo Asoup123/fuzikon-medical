@@ -313,6 +313,20 @@ main{width:92%;max-width:1280px;margin:32px auto 70px}.top{display:flex;justify-
 .news-editor{padding:24px;margin:16px 0 22px}
 .news-editor-grid{display:grid;grid-template-columns:1fr 220px;gap:14px}
 @media(max-width:760px){.news-editor-grid{grid-template-columns:1fr}.admin-tabs{position:sticky;top:0;z-index:9}}
+
+/* ===== 最新消息圖片 ===== */
+.news-image-field{margin-top:16px}
+.news-image-input{display:block;width:100%;padding:10px 12px;border:1px solid #d6e1e6;border-radius:8px;background:#fff}
+.news-image-help{margin-top:7px;color:#78909c;font-size:13px}
+.news-image-preview{display:none;margin-top:12px;width:min(420px,100%);padding:10px;border:1px solid #dfe7ea;border-radius:12px;background:#f8fbfc}
+.news-image-preview.show{display:block}
+.news-image-preview img{display:block;width:100%;max-height:260px;object-fit:contain;border-radius:9px;background:#fff}
+.news-image-preview-actions{display:flex;justify-content:flex-end;margin-top:9px}
+.news-admin-image{margin-top:14px;width:min(360px,100%);border-radius:10px;overflow:hidden;border:1px solid #e1eaee;background:#fff}
+.news-admin-image img{display:block;width:100%;max-height:220px;object-fit:cover}
+.admin-message-card,.admin-message-head,.admin-message-user,.admin-message-text,.admin-reply-wrap{min-width:0}
+.admin-message-text,.admin-reply{overflow-wrap:anywhere;word-break:break-word}
+
 </style>
 </head>
 <body>
@@ -449,6 +463,19 @@ main{width:92%;max-width:1280px;margin:32px auto 70px}.top{display:flex;justify-
       <div class="field"><label>顯示日期</label><input id="newsDate" type="date"></div>
     </div>
     <div class="field"><label>消息內容</label><textarea id="newsContent" maxlength="3000" placeholder="輸入最新消息內容"></textarea></div>
+
+    <div class="field news-image-field">
+      <label>消息圖片（選填）</label>
+      <input id="newsImageFile" class="news-image-input" type="file" accept="image/*">
+      <div class="news-image-help">可上傳 1 張圖片；修改消息時可保留原圖、換圖或移除圖片。</div>
+      <div id="newsImagePreview" class="news-image-preview">
+        <img id="newsImagePreviewImg" alt="最新消息圖片預覽">
+        <div class="news-image-preview-actions">
+          <button id="removeNewsImageBtn" type="button" class="danger">移除圖片</button>
+        </div>
+      </div>
+    </div>
+
     <div class="checks"><label><input id="newsPublic" type="checkbox" checked> 公開顯示</label></div>
     <div style="text-align:right"><button id="saveNewsBtn" class="primary">儲存消息</button></div>
     <div id="newsSaveMsg" class="msg"></div>
@@ -478,6 +505,11 @@ let imageNotes=[];
 let originalImages=[];
 let productsCache=[];
 let draggedRow=null;
+
+// 最新消息圖片狀態
+let newsImageUrl="";
+let originalNewsImageUrl="";
+let newsImageRemoved=false;
 
 async function isAdmin(){
 const {data,error}=await db.rpc("is_admin");
@@ -750,6 +782,78 @@ function todayLocal(){
   const d=new Date(), off=d.getTimezoneOffset();
   return new Date(d.getTime()-off*60000).toISOString().slice(0,10);
 }
+
+function renderNewsImagePreview(url=""){
+  const box=$("newsImagePreview");
+  const img=$("newsImagePreviewImg");
+  if(url){
+    img.src=url;
+    box.classList.add("show");
+  }else{
+    img.removeAttribute("src");
+    box.classList.remove("show");
+  }
+}
+
+function resetNewsImageState(url=""){
+  newsImageUrl=url||"";
+  originalNewsImageUrl=url||"";
+  newsImageRemoved=false;
+  $("newsImageFile").value="";
+  renderNewsImagePreview(newsImageUrl);
+}
+
+function newsStoragePathFromUrl(url){
+  const marker="/storage/v1/object/public/product-images/";
+  const i=(url||"").indexOf(marker);
+  if(i<0)return null;
+  try{return decodeURIComponent(url.slice(i+marker.length))}
+  catch{return url.slice(i+marker.length)}
+}
+
+async function removeNewsStorageUrl(url){
+  const path=newsStoragePathFromUrl(url);
+  if(!path)return;
+  const {error}=await db.storage.from("product-images").remove([path]);
+  if(error)throw error;
+}
+
+async function uploadNewsImage(file){
+  if(!file)return newsImageRemoved?"":newsImageUrl;
+
+  const ext=(file.name.split(".").pop()||"jpg").toLowerCase();
+  const path="news/"+crypto.randomUUID()+"."+ext;
+
+  const {error}=await db.storage
+    .from("product-images")
+    .upload(path,file);
+
+  if(error)throw error;
+
+  return db.storage
+    .from("product-images")
+    .getPublicUrl(path).data.publicUrl;
+}
+
+$("newsImageFile").addEventListener("change",()=>{
+  const file=$("newsImageFile").files?.[0];
+  if(!file){
+    renderNewsImagePreview(newsImageRemoved?"":newsImageUrl);
+    return;
+  }
+
+  newsImageRemoved=false;
+  const localUrl=URL.createObjectURL(file);
+  renderNewsImagePreview(localUrl);
+});
+
+$("removeNewsImageBtn").onclick=()=>{
+  $("newsImageFile").value="";
+  newsImageUrl="";
+  newsImageRemoved=true;
+  renderNewsImagePreview("");
+};
+
 function openNewsEditor(item=null){
   $("newsEditor").classList.remove("hidden");
   $("newsEditorTitle").textContent=item?"修改消息":"新增消息";
@@ -759,8 +863,10 @@ function openNewsEditor(item=null){
   $("newsDate").value=item?.publish_date||todayLocal();
   $("newsPublic").checked=item?!!item.is_public:true;
   $("newsSaveMsg").textContent="";
+  resetNewsImageState(item?.image_url||"");
   $("newsEditor").scrollIntoView({behavior:"smooth",block:"start"});
 }
+
 function closeNewsEditor(){
   $("newsEditor").classList.add("hidden");
   $("newsId").value="";
@@ -769,52 +875,177 @@ function closeNewsEditor(){
   $("newsDate").value=todayLocal();
   $("newsPublic").checked=true;
   $("newsSaveMsg").textContent="";
+  resetNewsImageState("");
 }
+
 $("newNewsBtn").onclick=()=>openNewsEditor();
 $("closeNewsBtn").onclick=closeNewsEditor;
 
 async function loadNews(){
   const host=$("adminNewsList");
-  const {data,error}=await db.from("news").select("*").order("publish_date",{ascending:false}).order("created_at",{ascending:false});
-  if(error){host.innerHTML='<div class="error">讀取最新消息失敗：'+esc(error.message)+'</div>';return}
-  if(!data?.length){host.innerHTML='<div class="msg">目前沒有最新消息</div>';return}
+  const {data,error}=await db
+    .from("news")
+    .select("*")
+    .order("publish_date",{ascending:false})
+    .order("created_at",{ascending:false});
+
+  if(error){
+    host.innerHTML='<div class="error">讀取最新消息失敗：'+esc(error.message)+'</div>';
+    return;
+  }
+
+  if(!data?.length){
+    host.innerHTML='<div class="msg">目前沒有最新消息</div>';
+    return;
+  }
+
   host.innerHTML="";
+
   data.forEach(n=>{
     const card=document.createElement("article");
     card.className="news-admin-card";
-    card.innerHTML=`<div class="news-admin-head"><div><div class="news-admin-title">${esc(n.title)}</div><div class="news-admin-date">${esc(n.publish_date||"")}</div></div><span class="${n.is_public?"public-badge":"private-badge"}">${n.is_public?"已公開":"未公開"}</span></div><div class="news-admin-content">${esc(n.content||"")}</div><div class="news-admin-actions"><button class="soft edit-news">修改</button><button class="soft toggle-news">${n.is_public?"隱藏":"公開"}</button><button class="danger delete-news">刪除</button></div>`;
+
+    card.innerHTML=`
+      <div class="news-admin-head">
+        <div>
+          <div class="news-admin-title">${esc(n.title)}</div>
+          <div class="news-admin-date">${esc(n.publish_date||"")}</div>
+        </div>
+        <span class="${n.is_public?"public-badge":"private-badge"}">
+          ${n.is_public?"已公開":"未公開"}
+        </span>
+      </div>
+
+      ${n.image_url?`
+        <div class="news-admin-image">
+          <img src="${esc(n.image_url)}" alt="${esc(n.title)}">
+        </div>
+      `:""}
+
+      <div class="news-admin-content">${esc(n.content||"")}</div>
+
+      <div class="news-admin-actions">
+        <button class="soft edit-news">修改</button>
+        <button class="soft toggle-news">${n.is_public?"隱藏":"公開"}</button>
+        <button class="danger delete-news">刪除</button>
+      </div>
+    `;
+
     card.querySelector(".edit-news").onclick=()=>openNewsEditor(n);
+
     card.querySelector(".toggle-news").onclick=async()=>{
-      const {error}=await db.from("news").update({is_public:!n.is_public}).eq("id",n.id);
-      if(error) alert("更新失敗："+error.message); else loadNews();
+      const {error}=await db
+        .from("news")
+        .update({is_public:!n.is_public})
+        .eq("id",n.id);
+
+      if(error) alert("更新失敗："+error.message);
+      else loadNews();
     };
+
     card.querySelector(".delete-news").onclick=async()=>{
-      if(!confirm("確定刪除這則最新消息？")) return;
-      const {error}=await db.from("news").delete().eq("id",n.id);
-      if(error) alert("刪除失敗："+error.message); else loadNews();
+      if(!confirm("確定刪除這則最新消息？圖片也會一起刪除。")) return;
+
+      const oldUrl=n.image_url||"";
+
+      const {error}=await db
+        .from("news")
+        .delete()
+        .eq("id",n.id);
+
+      if(error){
+        alert("刪除失敗："+error.message);
+        return;
+      }
+
+      if(oldUrl){
+        try{
+          await removeNewsStorageUrl(oldUrl);
+        }catch(e){
+          console.error(e);
+          alert("消息已刪除，但圖片未能從 Storage 刪除，請檢查 Storage DELETE 權限。");
+        }
+      }
+
+      loadNews();
     };
+
     host.appendChild(card);
   });
 }
 
 $("saveNewsBtn").onclick=async()=>{
+  const btn=$("saveNewsBtn");
   const id=$("newsId").value;
   const title=$("newsTitle").value.trim();
   const content=$("newsContent").value.trim();
   const publish_date=$("newsDate").value||todayLocal();
   const is_public=$("newsPublic").checked;
-  if(!title){$("newsSaveMsg").textContent="請輸入消息標題";return}
-  if(!content){$("newsSaveMsg").textContent="請輸入消息內容";return}
-  $("saveNewsBtn").disabled=true;
+  const selectedFile=$("newsImageFile").files?.[0]||null;
+
+  if(!title){
+    $("newsSaveMsg").textContent="請輸入消息標題";
+    return;
+  }
+
+  if(!content){
+    $("newsSaveMsg").textContent="請輸入消息內容";
+    return;
+  }
+
+  btn.disabled=true;
+  btn.textContent="儲存中…";
   $("newsSaveMsg").textContent="儲存中…";
-  const payload={title,content,publish_date,is_public};
-  const result=id
-    ? await db.from("news").update(payload).eq("id",id)
-    : await db.from("news").insert(payload);
-  $("saveNewsBtn").disabled=false;
-  if(result.error){$("newsSaveMsg").textContent="儲存失敗："+result.error.message;return}
-  closeNewsEditor();
-  await loadNews();
+
+  let uploadedNewUrl="";
+  const oldUrl=originalNewsImageUrl;
+
+  try{
+    let finalImageUrl=newsImageRemoved?"":newsImageUrl;
+
+    if(selectedFile){
+      uploadedNewUrl=await uploadNewsImage(selectedFile);
+      finalImageUrl=uploadedNewUrl;
+    }
+
+    const payload={
+      title,
+      content,
+      publish_date,
+      is_public,
+      image_url:finalImageUrl||null
+    };
+
+    const result=id
+      ? await db.from("news").update(payload).eq("id",id)
+      : await db.from("news").insert(payload);
+
+    if(result.error)throw result.error;
+
+    // 資料庫成功後才清掉舊圖，避免儲存失敗造成原圖遺失
+    if(oldUrl && oldUrl!==finalImageUrl){
+      try{
+        await removeNewsStorageUrl(oldUrl);
+      }catch(e){
+        console.error(e);
+        alert("消息已儲存，但舊圖片未能從 Storage 刪除，請檢查 Storage DELETE 權限。");
+      }
+    }
+
+    closeNewsEditor();
+    await loadNews();
+
+  }catch(e){
+    // 若新圖已上傳，但資料庫儲存失敗，盡量清掉剛上傳的孤兒檔案
+    if(uploadedNewUrl){
+      try{await removeNewsStorageUrl(uploadedNewUrl)}catch(_){}
+    }
+    $("newsSaveMsg").textContent="儲存失敗："+e.message;
+
+  }finally{
+    btn.disabled=false;
+    btn.textContent="儲存消息";
+  }
 };
 
 $("productSearch").addEventListener("input",renderProductTable);
