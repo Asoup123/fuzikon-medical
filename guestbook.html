@@ -552,6 +552,117 @@ main{
 
 }
 
+
+/* ===== 全站共用固定導覽列 ===== */
+html{scroll-padding-top:96px}
+body{overflow-x:hidden}
+header.site-header{
+  min-height:88px;
+  padding:12px clamp(24px,6vw,100px);
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:28px;
+  position:sticky;
+  top:0;
+  z-index:5000;
+  background:rgba(255,255,255,.97);
+  box-shadow:0 3px 18px rgba(0,0,0,.06);
+  backdrop-filter:blur(10px);
+}
+.site-header .logo{
+  display:flex;
+  align-items:center;
+  gap:14px;
+  min-width:0;
+  flex:0 1 auto;
+  color:#0797d3;
+  font-size:22px;
+  font-weight:800;
+  white-space:nowrap;
+}
+.site-header .logo img{
+  height:54px;
+  width:auto;
+  display:block;
+  flex:0 0 auto;
+}
+.site-header nav{
+  margin-left:auto;
+  display:flex;
+  align-items:center;
+  gap:clamp(14px,2vw,42px);
+  min-width:0;
+  white-space:nowrap;
+}
+.site-header nav a{
+  position:relative;
+  padding:10px 2px;
+  color:#333;
+  font-size:15px;
+  font-weight:600;
+  transition:.2s ease;
+}
+.site-header nav a:hover,
+.site-header nav a.active{
+  color:#0797d3;
+}
+.site-header nav a.active::after{
+  content:"";
+  position:absolute;
+  left:0;
+  right:0;
+  bottom:3px;
+  height:3px;
+  border-radius:3px;
+  background:#0797d3;
+}
+@media(max-width:900px){
+  header.site-header{
+    min-height:auto;
+    padding:10px 18px;
+    gap:14px;
+    flex-wrap:wrap;
+  }
+  .site-header .logo{font-size:18px}
+  .site-header .logo img{height:46px}
+  .site-header nav{
+    order:2;
+    width:100%;
+    margin-left:0;
+    gap:20px;
+    overflow-x:auto;
+    scrollbar-width:none;
+    padding-bottom:2px;
+  }
+  .site-header nav::-webkit-scrollbar{display:none}
+  .site-header nav a{font-size:14px;flex:0 0 auto}
+}
+@media(max-width:520px){
+  header.site-header{padding:9px 14px}
+  .site-header .logo{font-size:16px;gap:9px}
+  .site-header .logo img{height:42px}
+}
+
+/* 留言頁覆寫：使用全站導覽列，並防止超長內容破版 */
+header.site-header{height:auto}
+main{width:100%;max-width:1120px;margin:0 auto;padding:60px 24px 90px;min-width:0}
+.message-card,.form-card,.list,.field{min-width:0;max-width:100%}
+.message-card{overflow:hidden}
+.text,.reply-text,.name{
+  max-width:100%;
+  overflow-wrap:anywhere;
+  word-break:break-word;
+}
+.text,.reply-text{white-space:pre-wrap}
+.reply{white-space:normal}
+.reply strong{display:block;margin-bottom:6px}
+.reply-text{display:block}
+@media(max-width:700px){
+  main{padding:42px 18px 70px}
+  .form-grid{grid-template-columns:minmax(0,1fr)}
+}
+
 </style>
 </head>
 
@@ -563,31 +674,12 @@ main{
      Header
 ========================= -->
 
-<header>
-
-  <div class="header-inner">
-
-    <a class="brand" href="index.html">
-
-      <img
-        class="brand-logo"
-        src="images/fzk.png"
-        alt="富致康醫療器材"
-      >
-
-      <span class="brand-name">
-        富致康醫療器材
-      </span>
-
-    </a>
-
-
-    <a class="back" href="index.html">
-      回到首頁
-    </a>
-
-  </div>
-
+<header class="site-header">
+  <a href="index.html" class="logo">
+    <img src="images/fzk.png" alt="富致康醫療器材 Logo">
+    <span>富致康醫療器材</span>
+  </a>
+  <nav aria-label="主要導覽"><a href="index.html">首頁</a><a href="products.html">產品專區</a><a href="news.html">最新消息</a><a href="guestbook.html" class="active">留言板</a><a href="index.html#contact">聯絡我們</a></nav>
 </header>
 
 
@@ -794,51 +886,7 @@ async function load(){
   }
 
 
-  host.innerHTML=
-    data
-    .map(x=>`
-
-      <article class="message-card">
-
-        <div class="meta">
-
-          <span class="name">
-            ${esc(x.name)}
-          </span>
-
-          <span>
-            ${fmt(x.created_at)}
-          </span>
-
-        </div>
-
-
-        <div class="text">
-          ${esc(x.message)}
-        </div>
-
-
-        ${
-          x.reply
-          ?`
-            <div class="reply">
-
-              <strong>
-                富致康回覆
-              </strong>
-
-              ${esc(x.reply)}
-
-            </div>
-          `
-          :""
-        }
-
-
-      </article>
-
-    `)
-    .join("");
+  host.innerHTML=data.map(x=>`<article class="message-card"><div class="meta"><span class="name">${esc(x.name)}</span><span>${fmt(x.created_at)}</span></div><div class="text">${esc(x.message)}</div>${x.reply?`<div class="reply"><strong>富致康回覆</strong><span class="reply-text">${esc(x.reply)}</span></div>`:""}</article>`).join("");
 
 }
 
