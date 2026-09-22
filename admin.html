@@ -46,7 +46,258 @@ main{width:92%;max-width:1280px;margin:32px auto 70px}.top{display:flex;justify-
 .preview .image-box img{width:100%;height:100%;object-fit:contain}
 .preview .image-box button{position:absolute;top:4px;right:4px;border:0;border-radius:50%;width:25px;height:25px;background:#0009;color:white}
 
-.admin-message-list{display:grid;gap:14px;margin-top:18px}.admin-message-card{padding:18px;border:1px solid #dce7eb;border-radius:12px;background:#f8fbfc}.admin-message-head{display:flex;justify-content:space-between;gap:12px;margin-bottom:10px}.admin-message-name{font-weight:800;color:#17465c}.admin-message-date{font-size:13px;color:#78909c}.admin-message-text{white-space:pre-wrap;line-height:1.7;color:#526b76}.admin-reply{width:100%;min-height:90px;margin-top:14px;padding:10px;border:1px solid #cfdee5;border-radius:8px;font:inherit}.admin-message-actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px}.danger{border:0;background:#fff0ee;color:#b32a1f;border-radius:7px;padding:8px 12px}.public-badge{font-size:12px;padding:4px 8px;border-radius:999px;background:#e5f6ec;color:#19734a}.private-badge{font-size:12px;padding:4px 8px;border-radius:999px;background:#eee;color:#607d8b}
+/* =========================
+   留言管理
+========================= */
+
+.message-manager{
+  background:#fff;
+  border-radius:16px;
+  box-shadow:0 4px 18px rgba(0,0,0,.05);
+  overflow:hidden;
+}
+
+.message-manager-head{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:24px;
+  padding:26px 28px 22px;
+  border-bottom:1px solid #edf2f4;
+}
+
+.message-manager-title h1{
+  margin:0 0 7px;
+  font-size:26px;
+  color:#164c65;
+}
+
+.message-manager-title p{
+  margin:0;
+  color:#78909c;
+  font-size:14px;
+  line-height:1.6;
+}
+
+.message-refresh{
+  flex:none;
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  gap:7px;
+  border:0;
+  background:#e8f7fc;
+  color:#0797d3;
+  border-radius:9px;
+  padding:10px 15px;
+  font-weight:700;
+  transition:.18s ease;
+}
+
+.message-refresh:hover{
+  background:#d8f1fa;
+  transform:translateY(-1px);
+}
+
+/* 留言列表 */
+
+.admin-message-list{
+  display:grid;
+  gap:14px;
+  padding:22px 28px 28px;
+}
+
+/* 沒有留言 */
+
+.message-empty{
+  min-height:220px;
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  justify-content:center;
+  text-align:center;
+  border:1px dashed #d7e5ea;
+  border-radius:12px;
+  background:#fbfdfe;
+  padding:35px 20px;
+}
+
+.message-empty-icon{
+  width:52px;
+  height:52px;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  margin-bottom:14px;
+  border-radius:50%;
+  background:#e8f7fc;
+  color:#0797d3;
+}
+
+.message-empty-icon svg{
+  width:25px;
+  height:25px;
+}
+
+.message-empty-title{
+  margin-bottom:6px;
+  color:#17465c;
+  font-size:17px;
+  font-weight:800;
+}
+
+.message-empty-text{
+  color:#90a4ae;
+  font-size:14px;
+}
+
+/* 單則留言 */
+
+.admin-message-card{
+  padding:20px;
+  border:1px solid #dce7eb;
+  border-radius:12px;
+  background:#fbfdfe;
+  transition:.18s ease;
+}
+
+.admin-message-card:hover{
+  border-color:#c7dce5;
+  box-shadow:0 5px 16px rgba(20,76,101,.06);
+}
+
+.admin-message-head{
+  display:flex;
+  justify-content:space-between;
+  align-items:flex-start;
+  gap:14px;
+  margin-bottom:14px;
+}
+
+.admin-message-user{
+  display:flex;
+  align-items:center;
+  gap:9px;
+  flex-wrap:wrap;
+}
+
+.admin-message-name{
+  font-weight:800;
+  color:#17465c;
+  font-size:16px;
+}
+
+.admin-message-date{
+  flex:none;
+  font-size:13px;
+  color:#90a4ae;
+}
+
+.admin-message-text{
+  white-space:pre-wrap;
+  line-height:1.8;
+  color:#526b76;
+  background:#fff;
+  border:1px solid #edf2f4;
+  border-radius:9px;
+  padding:15px 16px;
+}
+
+.admin-reply-wrap{
+  margin-top:16px;
+}
+
+.admin-reply-label{
+  display:block;
+  margin-bottom:7px;
+  color:#48636f;
+  font-size:14px;
+  font-weight:700;
+}
+
+.admin-reply{
+  width:100%;
+  min-height:90px;
+  margin:0;
+  padding:11px 12px;
+  border:1px solid #cfdee5;
+  border-radius:9px;
+  background:#fff;
+  font:inherit;
+  line-height:1.6;
+  transition:.15s ease;
+}
+
+.admin-reply:focus{
+  outline:none;
+  border-color:#0797d3;
+  box-shadow:0 0 0 3px rgba(7,151,211,.08);
+}
+
+.admin-message-actions{
+  display:flex;
+  align-items:center;
+  gap:8px;
+  flex-wrap:wrap;
+  margin-top:12px;
+}
+
+.public-badge,
+.private-badge{
+  display:inline-flex;
+  align-items:center;
+  font-size:12px;
+  padding:4px 9px;
+  border-radius:999px;
+  font-weight:700;
+}
+
+.public-badge{
+  background:#e5f6ec;
+  color:#19734a;
+}
+
+.private-badge{
+  background:#eef2f4;
+  color:#607d8b;
+}
+
+.danger{
+  border:0;
+  background:#fff0ee;
+  color:#b32a1f;
+  border-radius:7px;
+  padding:8px 12px;
+}
+
+.danger:hover{
+  background:#ffe2de;
+}
+
+@media(max-width:760px){
+
+  .message-manager-head{
+    align-items:flex-start;
+    padding:20px;
+  }
+
+  .message-manager-title h1{
+    font-size:23px;
+  }
+
+  .admin-message-list{
+    padding:16px 20px 20px;
+  }
+
+  .admin-message-head{
+    flex-direction:column;
+    gap:7px;
+  }
+
+  .message-empty{
+    min-height:190px;
+  }
+}
 
 .admin-tabs{display:flex;gap:10px;flex-wrap:wrap;margin:0 0 24px;padding:10px;background:#fff;border-radius:12px;box-shadow:0 4px 18px rgba(0,0,0,.05)}
 .admin-tab{border:0;background:#eef4f6;color:#48636f;border-radius:8px;padding:10px 18px;font-weight:800}
@@ -250,20 +501,231 @@ $("password").addEventListener("keydown",e=>{if(e.key==="Enter")$("loginBtn").cl
 $("logoutBtn").onclick=async()=>{await db.auth.signOut();showLogin()};
 
 async function loadMessages(){
- const host=$("adminMessageList"); if(!host)return;
- const {data,error}=await db.from("guestbook_messages").select("*").order("created_at",{ascending:false});
- if(error){host.innerHTML='<div class="error">讀取留言失敗：'+esc(error.message)+'</div>';return}
- if(!data?.length){host.innerHTML='<div class="msg">目前沒有留言</div>';return}
- host.innerHTML="";
- data.forEach(m=>{
-  const card=document.createElement("div");card.className="admin-message-card";
-  const date=new Date(m.created_at).toLocaleString("zh-TW");
-  card.innerHTML=`<div class="admin-message-head"><div><span class="admin-message-name">${esc(m.name)}</span> <span class="${m.is_public?"public-badge":"private-badge"}">${m.is_public?"已公開":"未公開"}</span></div><span class="admin-message-date">${esc(date)}</span></div><div class="admin-message-text">${esc(m.message)}</div><textarea class="admin-reply" placeholder="輸入富致康回覆">${esc(m.reply||"")}</textarea><div class="admin-message-actions"><button class="soft save-reply">儲存回覆</button><button class="soft toggle-public">${m.is_public?"隱藏留言":"公開留言"}</button><button class="danger delete-message">刪除</button></div>`;
-  card.querySelector(".save-reply").onclick=async()=>{const reply=card.querySelector(".admin-reply").value.trim();const {error}=await db.from("guestbook_messages").update({reply,updated_at:new Date().toISOString()}).eq("id",m.id);if(error)alert("儲存失敗："+error.message);else{alert("回覆已儲存");loadMessages()}};
-  card.querySelector(".toggle-public").onclick=async()=>{const {error}=await db.from("guestbook_messages").update({is_public:!m.is_public,updated_at:new Date().toISOString()}).eq("id",m.id);if(error)alert("更新失敗："+error.message);else loadMessages()};
-  card.querySelector(".delete-message").onclick=async()=>{if(!confirm("確定刪除這則留言？"))return;const {error}=await db.from("guestbook_messages").delete().eq("id",m.id);if(error)alert("刪除失敗："+error.message);else loadMessages()};
-  host.appendChild(card);
- });
+
+  const host=$("adminMessageList");
+  if(!host)return;
+
+  host.innerHTML=`
+    <div class="message-empty">
+      <div class="message-empty-icon">
+        <svg viewBox="0 0 24 24" fill="none"
+             stroke="currentColor"
+             stroke-width="1.8"
+             stroke-linecap="round"
+             stroke-linejoin="round">
+          <path d="M21 15a4 4 0 0 1-4 4H8l-5 3V7a4 4 0 0 1 4-4h10a4 4 0 0 1 4 4z"/>
+        </svg>
+      </div>
+      <div class="message-empty-title">留言載入中…</div>
+    </div>
+  `;
+
+  const {data,error}=await db
+    .from("guestbook_messages")
+    .select("*")
+    .order("created_at",{ascending:false});
+
+  if(error){
+
+    host.innerHTML=`
+      <div class="message-empty">
+        <div class="message-empty-title" style="color:#bd2d2d">
+          留言讀取失敗
+        </div>
+        <div class="message-empty-text">
+          ${esc(error.message)}
+        </div>
+      </div>
+    `;
+
+    return;
+  }
+
+  if(!data?.length){
+
+    host.innerHTML=`
+      <div class="message-empty">
+
+        <div class="message-empty-icon">
+          <svg viewBox="0 0 24 24" fill="none"
+               stroke="currentColor"
+               stroke-width="1.8"
+               stroke-linecap="round"
+               stroke-linejoin="round">
+            <path d="M21 15a4 4 0 0 1-4 4H8l-5 3V7a4 4 0 0 1 4-4h10a4 4 0 0 1 4 4z"/>
+          </svg>
+        </div>
+
+        <div class="message-empty-title">
+          目前沒有留言
+        </div>
+
+        <div class="message-empty-text">
+          網站收到的新留言會顯示在這裡
+        </div>
+
+      </div>
+    `;
+
+    return;
+  }
+
+  host.innerHTML="";
+
+  data.forEach(m=>{
+
+    const card=document.createElement("div");
+
+    card.className="admin-message-card";
+
+    const date=new Date(m.created_at)
+      .toLocaleString("zh-TW");
+
+    card.innerHTML=`
+
+      <div class="admin-message-head">
+
+        <div class="admin-message-user">
+
+          <span class="admin-message-name">
+            ${esc(m.name)}
+          </span>
+
+          <span class="${m.is_public?"public-badge":"private-badge"}">
+            ${m.is_public?"已公開":"未公開"}
+          </span>
+
+        </div>
+
+        <span class="admin-message-date">
+          ${esc(date)}
+        </span>
+
+      </div>
+
+
+      <div class="admin-message-text">
+        ${esc(m.message)}
+      </div>
+
+
+      <div class="admin-reply-wrap">
+
+        <label class="admin-reply-label">
+          富致康回覆
+        </label>
+
+        <textarea
+          class="admin-reply"
+          placeholder="輸入回覆內容"
+        >${esc(m.reply||"")}</textarea>
+
+      </div>
+
+
+      <div class="admin-message-actions">
+
+        <button class="soft save-reply">
+          儲存回覆
+        </button>
+
+        <button class="soft toggle-public">
+          ${m.is_public?"隱藏留言":"公開留言"}
+        </button>
+
+        <button class="danger delete-message">
+          刪除
+        </button>
+
+      </div>
+    `;
+
+
+    /* 儲存回覆 */
+
+    card.querySelector(".save-reply").onclick=async()=>{
+
+      const reply=card
+        .querySelector(".admin-reply")
+        .value
+        .trim();
+
+      const {error}=await db
+        .from("guestbook_messages")
+        .update({
+          reply,
+          updated_at:new Date().toISOString()
+        })
+        .eq("id",m.id);
+
+      if(error){
+
+        alert("儲存失敗："+error.message);
+
+      }else{
+
+        alert("回覆已儲存");
+        loadMessages();
+
+      }
+
+    };
+
+
+    /* 公開 / 隱藏 */
+
+    card.querySelector(".toggle-public").onclick=async()=>{
+
+      const {error}=await db
+        .from("guestbook_messages")
+        .update({
+          is_public:!m.is_public,
+          updated_at:new Date().toISOString()
+        })
+        .eq("id",m.id);
+
+      if(error){
+
+        alert("更新失敗："+error.message);
+
+      }else{
+
+        loadMessages();
+
+      }
+
+    };
+
+
+    /* 刪除留言 */
+
+    card.querySelector(".delete-message").onclick=async()=>{
+
+      if(!confirm("確定刪除這則留言？"))
+        return;
+
+      const {error}=await db
+        .from("guestbook_messages")
+        .delete()
+        .eq("id",m.id);
+
+      if(error){
+
+        alert("刪除失敗："+error.message);
+
+      }else{
+
+        loadMessages();
+
+      }
+
+    };
+
+
+    host.appendChild(card);
+
+  });
+
 }
 $("refreshMessages").onclick=loadMessages;
 
