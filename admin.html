@@ -47,6 +47,21 @@ main{width:92%;max-width:1280px;margin:32px auto 70px}.top{display:flex;justify-
 .preview .image-box button{position:absolute;top:4px;right:4px;border:0;border-radius:50%;width:25px;height:25px;background:#0009;color:white}
 
 .admin-message-list{display:grid;gap:14px;margin-top:18px}.admin-message-card{padding:18px;border:1px solid #dce7eb;border-radius:12px;background:#f8fbfc}.admin-message-head{display:flex;justify-content:space-between;gap:12px;margin-bottom:10px}.admin-message-name{font-weight:800;color:#17465c}.admin-message-date{font-size:13px;color:#78909c}.admin-message-text{white-space:pre-wrap;line-height:1.7;color:#526b76}.admin-reply{width:100%;min-height:90px;margin-top:14px;padding:10px;border:1px solid #cfdee5;border-radius:8px;font:inherit}.admin-message-actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px}.danger{border:0;background:#fff0ee;color:#b32a1f;border-radius:7px;padding:8px 12px}.public-badge{font-size:12px;padding:4px 8px;border-radius:999px;background:#e5f6ec;color:#19734a}.private-badge{font-size:12px;padding:4px 8px;border-radius:999px;background:#eee;color:#607d8b}
+
+.admin-tabs{display:flex;gap:10px;flex-wrap:wrap;margin:0 0 24px;padding:10px;background:#fff;border-radius:12px;box-shadow:0 4px 18px rgba(0,0,0,.05)}
+.admin-tab{border:0;background:#eef4f6;color:#48636f;border-radius:8px;padding:10px 18px;font-weight:800}
+.admin-tab.active{background:#0797d3;color:#fff}
+.admin-panel{display:none}.admin-panel.active{display:block}
+.news-admin-list{display:grid;gap:14px;margin-top:18px}
+.news-admin-card{padding:18px;border:1px solid #dce7eb;border-radius:12px;background:#f8fbfc}
+.news-admin-head{display:flex;justify-content:space-between;gap:12px;align-items:flex-start}
+.news-admin-title{font-weight:800;color:#17465c;font-size:17px}
+.news-admin-date{font-size:13px;color:#78909c;margin-top:4px}
+.news-admin-content{white-space:pre-wrap;line-height:1.75;color:#526b76;margin-top:10px}
+.news-admin-actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:14px}
+.news-editor{padding:24px;margin:16px 0 22px}
+.news-editor-grid{display:grid;grid-template-columns:1fr 220px;gap:14px}
+@media(max-width:760px){.news-editor-grid{grid-template-columns:1fr}.admin-tabs{position:sticky;top:0;z-index:9}}
 </style>
 </head>
 <body>
@@ -54,7 +69,7 @@ main{width:92%;max-width:1280px;margin:32px auto 70px}.top{display:flex;justify-
 <section id="loginPage" class="login">
 <div class="card login-box">
 <h1>富致康管理後台</h1>
-<p>商品管理系統</p>
+<p>網站內容管理系統</p>
 <div class="field"><label>管理員 Email</label><input id="email" type="email"></div>
 <div class="field"><label>密碼</label><input id="password" type="password"></div>
 <button id="loginBtn" class="primary full">登入</button>
@@ -64,7 +79,7 @@ main{width:92%;max-width:1280px;margin:32px auto 70px}.top{display:flex;justify-
 
 <div id="adminPage" class="hidden">
 <header>
-<strong>富致康醫療器材｜商品管理</strong>
+<strong>富致康醫療器材｜管理後台</strong>
 <div class="header-actions">
 <a href="index.html" target="_blank">查看網站</a>
 <button id="logoutBtn">登出</button>
@@ -72,6 +87,14 @@ main{width:92%;max-width:1280px;margin:32px auto 70px}.top{display:flex;justify-
 </header>
 
 <main>
+<div class="admin-tabs" id="adminTabs">
+  <button class="admin-tab active" data-panel="productPanel">商品管理</button>
+  <button class="admin-tab" data-panel="newsPanel">最新消息</button>
+  <button class="admin-tab" data-panel="messagePanel">留言管理</button>
+</div>
+
+<section id="productPanel" class="admin-panel active">
+
 <div class="top">
 <div><h1>商品管理</h1><p>新增、修改、上架與管理商品</p></div>
 <button id="newBtn" class="primary">＋ 新增商品</button>
@@ -158,9 +181,36 @@ main{width:92%;max-width:1280px;margin:32px auto 70px}.top{display:flex;justify-
 <div style="margin-top:24px;text-align:right"><button id="saveBtn" class="primary">儲存商品</button></div>
 <div id="saveMsg" class="msg"></div>
 </section>
+
+</section>
+
+<section id="newsPanel" class="admin-panel">
+  <div class="top">
+    <div><h1>最新消息</h1><p>新增、修改、公開與管理網站最新消息</p></div>
+    <button id="newNewsBtn" class="primary">＋ 新增消息</button>
+  </div>
+
+  <section id="newsEditor" class="card news-editor hidden">
+    <div class="top"><h2 id="newsEditorTitle">新增消息</h2><button id="closeNewsBtn">關閉</button></div>
+    <input id="newsId" type="hidden">
+    <div class="news-editor-grid">
+      <div class="field"><label>消息標題</label><input id="newsTitle" maxlength="120" placeholder="例如：中秋連假營業時間公告"></div>
+      <div class="field"><label>顯示日期</label><input id="newsDate" type="date"></div>
+    </div>
+    <div class="field"><label>消息內容</label><textarea id="newsContent" maxlength="3000" placeholder="輸入最新消息內容"></textarea></div>
+    <div class="checks"><label><input id="newsPublic" type="checkbox" checked> 公開顯示</label></div>
+    <div style="text-align:right"><button id="saveNewsBtn" class="primary">儲存消息</button></div>
+    <div id="newsSaveMsg" class="msg"></div>
+  </section>
+
+  <div id="adminNewsList" class="news-admin-list"><div class="msg">消息載入中…</div></div>
+</section>
+
+<section id="messagePanel" class="admin-panel">
 <section class="card" id="messageManager" style="margin-top:28px">
 <div class="top"><div><h2>留言管理</h2><p>回覆、公開、隱藏或刪除客人留言</p></div><button id="refreshMessages" class="soft">重新整理</button></div>
 <div id="adminMessageList" class="admin-message-list"><div class="msg">留言載入中…</div></div>
+</section>
 </section>
 </main>
 </div>
@@ -218,6 +268,92 @@ async function loadMessages(){
 $("refreshMessages").onclick=loadMessages;
 
 setTimeout(()=>{if(!$("adminPage").classList.contains("hidden"))loadMessages()},300);
+
+
+// ===== 後台快速分類切換 =====
+document.querySelectorAll(".admin-tab").forEach(btn=>{
+  btn.addEventListener("click",()=>{
+    document.querySelectorAll(".admin-tab").forEach(x=>x.classList.remove("active"));
+    document.querySelectorAll(".admin-panel").forEach(x=>x.classList.remove("active"));
+    btn.classList.add("active");
+    $(btn.dataset.panel).classList.add("active");
+    window.scrollTo({top:0,behavior:"smooth"});
+    if(btn.dataset.panel==="newsPanel") loadNews();
+    if(btn.dataset.panel==="messagePanel") loadMessages();
+  });
+});
+
+// ===== 最新消息管理 =====
+function todayLocal(){
+  const d=new Date(), off=d.getTimezoneOffset();
+  return new Date(d.getTime()-off*60000).toISOString().slice(0,10);
+}
+function openNewsEditor(item=null){
+  $("newsEditor").classList.remove("hidden");
+  $("newsEditorTitle").textContent=item?"修改消息":"新增消息";
+  $("newsId").value=item?.id||"";
+  $("newsTitle").value=item?.title||"";
+  $("newsContent").value=item?.content||"";
+  $("newsDate").value=item?.publish_date||todayLocal();
+  $("newsPublic").checked=item?!!item.is_public:true;
+  $("newsSaveMsg").textContent="";
+  $("newsEditor").scrollIntoView({behavior:"smooth",block:"start"});
+}
+function closeNewsEditor(){
+  $("newsEditor").classList.add("hidden");
+  $("newsId").value="";
+  $("newsTitle").value="";
+  $("newsContent").value="";
+  $("newsDate").value=todayLocal();
+  $("newsPublic").checked=true;
+  $("newsSaveMsg").textContent="";
+}
+$("newNewsBtn").onclick=()=>openNewsEditor();
+$("closeNewsBtn").onclick=closeNewsEditor;
+
+async function loadNews(){
+  const host=$("adminNewsList");
+  const {data,error}=await db.from("news").select("*").order("publish_date",{ascending:false}).order("created_at",{ascending:false});
+  if(error){host.innerHTML='<div class="error">讀取最新消息失敗：'+esc(error.message)+'</div>';return}
+  if(!data?.length){host.innerHTML='<div class="msg">目前沒有最新消息</div>';return}
+  host.innerHTML="";
+  data.forEach(n=>{
+    const card=document.createElement("article");
+    card.className="news-admin-card";
+    card.innerHTML=`<div class="news-admin-head"><div><div class="news-admin-title">${esc(n.title)}</div><div class="news-admin-date">${esc(n.publish_date||"")}</div></div><span class="${n.is_public?"public-badge":"private-badge"}">${n.is_public?"已公開":"未公開"}</span></div><div class="news-admin-content">${esc(n.content||"")}</div><div class="news-admin-actions"><button class="soft edit-news">修改</button><button class="soft toggle-news">${n.is_public?"隱藏":"公開"}</button><button class="danger delete-news">刪除</button></div>`;
+    card.querySelector(".edit-news").onclick=()=>openNewsEditor(n);
+    card.querySelector(".toggle-news").onclick=async()=>{
+      const {error}=await db.from("news").update({is_public:!n.is_public}).eq("id",n.id);
+      if(error) alert("更新失敗："+error.message); else loadNews();
+    };
+    card.querySelector(".delete-news").onclick=async()=>{
+      if(!confirm("確定刪除這則最新消息？")) return;
+      const {error}=await db.from("news").delete().eq("id",n.id);
+      if(error) alert("刪除失敗："+error.message); else loadNews();
+    };
+    host.appendChild(card);
+  });
+}
+
+$("saveNewsBtn").onclick=async()=>{
+  const id=$("newsId").value;
+  const title=$("newsTitle").value.trim();
+  const content=$("newsContent").value.trim();
+  const publish_date=$("newsDate").value||todayLocal();
+  const is_public=$("newsPublic").checked;
+  if(!title){$("newsSaveMsg").textContent="請輸入消息標題";return}
+  if(!content){$("newsSaveMsg").textContent="請輸入消息內容";return}
+  $("saveNewsBtn").disabled=true;
+  $("newsSaveMsg").textContent="儲存中…";
+  const payload={title,content,publish_date,is_public};
+  const result=id
+    ? await db.from("news").update(payload).eq("id",id)
+    : await db.from("news").insert(payload);
+  $("saveNewsBtn").disabled=false;
+  if(result.error){$("newsSaveMsg").textContent="儲存失敗："+result.error.message;return}
+  closeNewsEditor();
+  await loadNews();
+};
 
 $("productSearch").addEventListener("input",renderProductTable);
 $("categoryFilter").addEventListener("change",renderProductTable);
