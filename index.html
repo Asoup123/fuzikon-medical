@@ -1151,7 +1151,7 @@
 <!-- NEWS -->
 <section class="news-section" id="news">
 <div class="section-title"><span>NEWS</span><h2>最新消息</h2></div>
-<div class="news-list"><article class="news-card"><div class="news-date">2026 / 09 / 21</div><h3>富致康最新消息專區上線</h3><p>最新公告、營業資訊與相關消息將陸續更新於此。</p></article></div>
+<div class="news-list" id="homeNewsList"><div class="message-loading">最新消息載入中…</div></div>
 </section>
 <!-- GUESTBOOK PREVIEW -->
 <section class="guestbook-section" id="guestbook">
@@ -1330,6 +1330,21 @@ const PUBLIC_SUPABASE_KEY="sb_publishable_ofwe1YigppMHJjcWu_VjUA_XF7wNzEm";
 const publicDb=supabase.createClient(PUBLIC_SUPABASE_URL,PUBLIC_SUPABASE_KEY);
 const hEsc=v=>String(v??"").replace(/[&<>"']/g,m=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#039;"}[m]));
 const hDate=v=>new Date(v).toLocaleDateString("zh-TW",{year:"numeric",month:"2-digit",day:"2-digit"});
+
+const newsDate=v=>{
+  if(!v)return "";
+  const d=new Date(v+"T00:00:00");
+  return d.toLocaleDateString("zh-TW",{year:"numeric",month:"2-digit",day:"2-digit"});
+};
+async function loadHomeNews(){
+ const host=document.getElementById("homeNewsList"); if(!host)return;
+ const {data,error}=await publicDb.from("news").select("id,title,content,publish_date").eq("is_public",true).order("publish_date",{ascending:false}).order("created_at",{ascending:false}).limit(6);
+ if(error){host.innerHTML='<div class="message-loading">最新消息目前無法載入</div>';return}
+ if(!data?.length){host.innerHTML='<div class="message-loading">目前尚無最新消息</div>';return}
+ host.innerHTML=data.map(n=>`<article class="news-card"><div class="news-date">${newsDate(n.publish_date)}</div><h3>${hEsc(n.title)}</h3><p>${hEsc(n.content).replace(/\n/g,"<br>")}</p></article>`).join("");
+}
+loadHomeNews();
+
 async function loadHomeMessages(){
  const host=document.getElementById("homeMessageList"); if(!host)return;
  const {data,error}=await publicDb.from("guestbook_messages").select("id,name,message,reply,created_at").eq("is_public",true).order("created_at",{ascending:false}).limit(3);
