@@ -45,6 +45,7 @@ main{width:92%;max-width:1280px;margin:32px auto 70px}.top{display:flex;justify-
 .preview .image-box{height:110px;position:relative;border:1px solid #dfe7ea;border-radius:8px;overflow:hidden;background:#f8fafb}
 .preview .image-box img{width:100%;height:100%;object-fit:contain}
 .preview .image-box button{position:absolute;top:4px;right:4px;border:0;border-radius:50%;width:25px;height:25px;background:#0009;color:white}
+.preview[draggable="true"]{cursor:grab;user-select:none}.preview.dragging{opacity:.4}.preview.drag-over{outline:2px solid #0797d3;outline-offset:3px}
 
 /* =========================
    留言管理
@@ -1279,14 +1280,19 @@ async function deleteStorageUrlsIfUnused(urls){
 }
 
 function renderImages(){
-$("previews").innerHTML="";
-images.forEach((u,i)=>{
-const d=document.createElement("div");d.className="preview";
-d.innerHTML=`<div class="image-box"><img src="${esc(u)}"><button type="button">×</button></div><input class="image-note" type="text" placeholder="圖片備註，例如：粉色" value="${esc(imageNotes[i]||"")}">`;
-d.querySelector("button").onclick=()=>{images.splice(i,1);imageNotes.splice(i,1);renderImages()};
-d.querySelector(".image-note").addEventListener("input",e=>{imageNotes[i]=e.target.value});
-$("previews").appendChild(d);
-});
+ $("previews").innerHTML="";
+ images.forEach((u,i)=>{
+  const d=document.createElement("div");d.className="preview";d.draggable=true;
+  d.innerHTML=`<div class="image-box"><img src="${esc(u)}" draggable="false"><button type="button">×</button></div><input class="image-note" type="text" placeholder="圖片備註，例如：粉色" value="${esc(imageNotes[i]||"")}">`;
+  d.querySelector("button").onclick=()=>{images.splice(i,1);imageNotes.splice(i,1);renderImages()};
+  d.querySelector(".image-note").addEventListener("input",e=>{imageNotes[i]=e.target.value});
+  d.addEventListener("dragstart",e=>{if(e.target.classList?.contains("image-note")){e.preventDefault();return}d.classList.add("dragging");e.dataTransfer.setData("text/plain",String(i))});
+  d.addEventListener("dragend",()=>{d.classList.remove("dragging");document.querySelectorAll(".preview").forEach(x=>x.classList.remove("drag-over"))});
+  d.addEventListener("dragover",e=>{e.preventDefault();d.classList.add("drag-over")});
+  d.addEventListener("dragleave",()=>d.classList.remove("drag-over"));
+  d.addEventListener("drop",e=>{e.preventDefault();const from=Number(e.dataTransfer.getData("text/plain")),to=i;if(!Number.isInteger(from)||from===to)return;const [im]=images.splice(from,1),[nt]=imageNotes.splice(from,1);images.splice(to,0,im);imageNotes.splice(to,0,nt);renderImages()});
+  $("previews").appendChild(d);
+ });
 }
 async function upload(){
 for(const f of Array.from($("files").files)){
@@ -1298,6 +1304,11 @@ images.push(db.storage.from("product-images").getPublicUrl(path).data.publicUrl)
 }
 $("files").value="";
 }
+
+$("files").addEventListener("change",async()=>{
+ const input=$("files");if(!input.files?.length)return;const selected=Array.from(input.files);input.disabled=true;$("saveMsg").textContent="圖片上傳中…";
+ try{for(const f of selected){const ext=(f.name.split(".").pop()||"jpg").toLowerCase();const path="products/"+crypto.randomUUID()+"."+ext;const {error}=await db.storage.from("product-images").upload(path,f);if(error)throw error;images.push(db.storage.from("product-images").getPublicUrl(path).data.publicUrl);imageNotes.push("");renderImages()}$("saveMsg").textContent="圖片已上傳，可直接拖曳調整順序"}catch(e){$("saveMsg").textContent="圖片上傳失敗："+e.message}finally{input.value="";input.disabled=false}
+});
 
 async function reset(useDefaults=true){
   ["id","name","desc","ltcSubsidy","disabilitySubsidy"].forEach(x=>$(x).value="");
@@ -1349,7 +1360,13 @@ const subsidyData=parseSubsidy(data.subsidy);
 $("ltcSubsidy").value=subsidyData.long_term_care;
 $("disabilitySubsidy").value=subsidyData.disability;
 $("sort").value=data.sort_order||1;$("active").checked=!!data.is_active;
-images=[...(data.image_urls||[])];originalImages=[...(data.image_urls||[])];renderImages();
+images=[...(data.image_urls||[])];originalImages=[...(data.image_urls||[])];
+imageNotes=[];
+const noteMeta=(data.features||[]).find(x=>typeof x==="string"&&x.startsWith("__IMAGE_NOTES__"));
+if(noteMeta){try{const savedNotes=JSON.parse(noteMeta.slice("__IMAGE_NOTES__".length));if(Array.isArray(savedNotes))imageNotes=savedNotes.map(x=>String(x??""))}catch(e){console.warn("圖片備註讀取失敗",e)}}
+while(imageNotes.length<images.length)imageNotes.push("");
+if(imageNotes.length>images.length)imageNotes=imageNotes.slice(0,images.length);
+renderImages();
 (data.specs||[]).forEach(s=>addSpec(s.name,s.value));(data.variants||[]).forEach(v=>addVariant(v.model||"",v.specs||[]));
 $("editorTitle").textContent="編輯商品";$("editor").classList.remove("hidden");$("editor").scrollIntoView({behavior:"smooth"});
 }
