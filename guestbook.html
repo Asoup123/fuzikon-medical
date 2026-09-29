@@ -663,6 +663,133 @@ main{width:100%;max-width:1120px;margin:0 auto;padding:60px 24px 90px;min-width:
   .form-grid{grid-template-columns:minmax(0,1fr)}
 }
 
+
+
+/* =========================================================
+   富致康全站藍色視覺統一版｜留言板
+   僅調整視覺，不更動 Supabase 留言功能
+========================================================= */
+body{
+  min-height:100vh;
+  background:
+    radial-gradient(circle at 88% 12%,rgba(7,151,211,.18) 0,rgba(7,151,211,.07) 20%,transparent 40%),
+    radial-gradient(circle at 7% 62%,rgba(0,119,170,.10) 0,transparent 30%),
+    linear-gradient(180deg,#dceff7 0%,#eaf6fa 42%,#f0f8fb 72%,#e3f2f7 100%);
+}
+
+main{
+  position:relative;
+  z-index:1;
+}
+main::before{
+  content:"";
+  position:absolute;
+  width:430px;
+  height:430px;
+  right:-300px;
+  top:80px;
+  border-radius:50%;
+  background:rgba(7,151,211,.06);
+  pointer-events:none;
+  z-index:-1;
+}
+main::after{
+  content:"";
+  position:absolute;
+  width:300px;
+  height:300px;
+  left:-230px;
+  bottom:80px;
+  border-radius:50%;
+  background:rgba(7,151,211,.055);
+  pointer-events:none;
+  z-index:-1;
+}
+
+.title span{color:#0797d3}
+.title h1{
+  color:#124d67;
+  font-weight:800;
+}
+.title h1::after{
+  content:"";
+  display:block;
+  width:46px;
+  height:4px;
+  margin:12px auto 0;
+  border-radius:10px;
+  background:#0797d3;
+}
+
+.form-card,
+.message-card{
+  background:rgba(255,255,255,.96);
+  border:1px solid rgba(7,151,211,.16);
+  box-shadow:0 9px 28px rgba(21,91,120,.08);
+}
+.form-card{
+  border-radius:16px;
+}
+.message-card{
+  border-radius:16px;
+  transition:transform .22s ease,box-shadow .22s ease,border-color .22s ease;
+}
+.message-card:hover{
+  transform:translateY(-2px);
+  border-color:rgba(7,151,211,.30);
+  box-shadow:0 14px 32px rgba(21,91,120,.12);
+}
+
+.field label{color:#174f68}
+.field input,
+.field textarea{
+  background:#fbfdfe;
+  border-color:#c9e0e9;
+}
+.field input:focus,
+.field textarea:focus{
+  background:#fff;
+  border-color:#0797d3;
+  box-shadow:0 0 0 3px rgba(7,151,211,.10);
+}
+
+.submit{
+  background:linear-gradient(135deg,#0797d3,#087eae);
+  box-shadow:0 6px 16px rgba(7,151,211,.18);
+}
+.submit:hover{
+  background:linear-gradient(135deg,#078bc2,#076f9b);
+}
+
+.reply{
+  background:linear-gradient(135deg,#e7f6fc,#f1fafd);
+  border:1px solid rgba(7,151,211,.12);
+}
+.reply strong{color:#0797d3}
+
+.empty{
+  background:rgba(255,255,255,.92);
+  border:1px solid rgba(7,151,211,.16);
+  border-radius:16px;
+  box-shadow:0 9px 28px rgba(21,91,120,.07);
+}
+
+@media(max-width:700px){
+  body{
+    background:linear-gradient(180deg,#dceff7 0%,#edf7fa 52%,#e3f2f7 100%);
+  }
+  main::before{
+    width:260px;
+    height:260px;
+    right:-180px;
+  }
+  main::after{
+    width:220px;
+    height:220px;
+    left:-165px;
+  }
+}
+
 </style>
 </head>
 
