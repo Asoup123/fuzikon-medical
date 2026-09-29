@@ -1457,6 +1457,35 @@ header.site-header{
   .site-header .logo img{height:42px}
 }
 
+
+/* ===== 產品專區｜藍色背景加強版 ===== */
+body{background:linear-gradient(180deg,#dff2f9 0%,#eaf6fa 42%,#e4f2f7 100%);}
+.products-section{position:relative;padding:42px 4.5% 85px;background:radial-gradient(circle at 88% 10%,rgba(7,151,211,.18) 0,rgba(7,151,211,.07) 20%,transparent 38%),radial-gradient(circle at 6% 72%,rgba(7,151,211,.10) 0,transparent 28%),linear-gradient(135deg,#d9eef7 0%,#edf7fa 48%,#e0f1f7 100%);}
+.products-section::before{content:"";position:absolute;width:420px;height:420px;top:90px;right:-180px;border-radius:50%;background:rgba(7,151,211,.075);pointer-events:none;}
+.products-section::after{content:"";position:absolute;width:330px;height:330px;left:-170px;bottom:100px;border-radius:50%;background:rgba(7,151,211,.06);pointer-events:none;}
+.products-layout{position:relative;z-index:1;}
+.product-sidebar{background:rgba(255,255,255,.97);border:1px solid rgba(7,151,211,.18);box-shadow:0 12px 32px rgba(21,91,120,.10);backdrop-filter:blur(8px);}
+.sidebar-search input{background:#f8fcfe;border-color:#c8dfe8;}
+.sidebar-search input:focus{background:#fff;border-color:#0797d3;box-shadow:0 0 0 4px rgba(7,151,211,.10);}
+.sidebar-title{color:#12516d;}
+.category-button:hover{color:#087ead;background:#e6f5fb;}
+.category-button.active{color:#fff;background:linear-gradient(135deg,#078ac2,#0aa3df);box-shadow:0 6px 15px rgba(7,151,211,.20);}
+.products-heading h1,.products-heading h2{color:#124d67;font-weight:800;}
+.products-heading h1::after,.products-heading h2::after{content:"";display:block;width:42px;height:4px;margin-top:8px;border-radius:10px;background:#0797d3;}
+.product-card{background:#fff;border:1px solid rgba(12,116,157,.15);box-shadow:0 5px 18px rgba(22,79,102,.065);transition:transform .22s ease,box-shadow .22s ease,border-color .22s ease;}
+.product-card:hover{transform:translateY(-5px);border-color:rgba(7,151,211,.45);box-shadow:0 16px 32px rgba(19,91,120,.15);}
+.product-image{background:#fff;}
+.product-content{background:linear-gradient(180deg,#fff 0%,#fbfdfe 100%);}
+.loading-box,.empty-box{background:rgba(255,255,255,.94);border:1px solid rgba(7,151,211,.16);box-shadow:0 8px 25px rgba(22,79,102,.07);}
+.modal-dialog{background:linear-gradient(180deg,#fff,#f5fbfd);box-shadow:0 25px 70px rgba(0,55,80,.25);}
+.main-photo{background:#fff;border:1px solid #e0edf2;}
+.modal-category{color:#087ead;background:#e1f4fb;}
+.modal-info h2,.detail-section h3{color:#124d67;}
+.modal-subsidy{color:#176182;background:#e6f5fa;border:1px solid #d1eaf3;}
+.spec-table tr:nth-child(odd){background:#edf7fa;}
+.variant-table thead th{background:#dff2f9;color:#124d67;}
+@media(max-width:900px){.products-section{background:linear-gradient(180deg,#dceff7 0%,#edf7fa 50%,#e3f2f7 100%)}.product-sidebar{background:rgba(255,255,255,.97)}}
+@media(max-width:600px){.products-section{padding-top:28px}.products-section::before{width:250px;height:250px;right:-130px}.products-section::after{width:220px;height:220px;left:-120px}}
 </style>
 
 </head>
