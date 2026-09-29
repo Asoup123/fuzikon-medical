@@ -317,112 +317,103 @@
         ========================= */
 
         .about {
-            background: white;
+            position: relative;
+            overflow: hidden;
+            background: linear-gradient(135deg, #e4f4fa 0%, #d9eef7 55%, #eef8fb 100%);
+        }
+
+        .about::before {
+            content: "";
+            position: absolute;
+            width: 320px;
+            height: 320px;
+            right: -150px;
+            top: -170px;
+            border: 1px solid rgba(7,151,211,.16);
+            border-radius: 50%;
+            pointer-events: none;
         }
 
         .about-container {
-            max-width: 1100px;
-
-            margin: auto;
-
-            display: grid;
-
-            grid-template-columns: 1.15fr 0.85fr;
-
-            gap: 65px;
-
-            align-items: center;
-        }
-
-        .about-text h2 {
-            margin-bottom: 20px;
-
-            color: #164c65;
-
-            font-size: 36px;
-        }
-
-        .about-text p {
-            margin-bottom: 16px;
-
-            color: #606060;
-
-            font-size: 17px;
-        }
-
-        .about-year {
-            min-height: 300px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            text-align: left;
-            color: #164c65;
-            border: 1px solid rgba(7,151,211,.18);
-            border-radius: 24px;
-            background: rgba(255,255,255,.78);
-            box-shadow: 0 18px 45px rgba(19,91,120,.10);
-            backdrop-filter: blur(8px);
-            position: relative;
-            overflow: hidden;
-        }
-
-        .about-year::before {
-            content: "";
-            position: absolute;
-            width: 190px;
-            height: 190px;
-            right: -70px;
-            top: -80px;
-            border-radius: 50%;
-            background: rgba(7,151,211,.09);
-        }
-
-        .about-year::after {
-            content: "";
-            position: absolute;
-            left: 42px;
-            top: 42px;
-            width: 42px;
-            height: 4px;
-            border-radius: 10px;
-            background: #0797d3;
-        }
-
-        .about-year > div {
-            width: 100%;
-            padding: 58px 42px 42px;
             position: relative;
             z-index: 1;
+            max-width: 1100px;
+            margin: auto;
         }
 
-        .year-label {
+        .about-heading {
+            max-width: 760px;
+            margin: 0 auto 34px;
+            text-align: center;
+        }
+
+        .about-heading span {
+            display: block;
+            margin-bottom: 6px;
             color: #0797d3;
             font-size: 13px;
             font-weight: 800;
             letter-spacing: 2px;
-            margin-bottom: 8px;
         }
 
-        .year-number {
-            color: #087ead;
-            font-size: 64px;
-            font-weight: 900;
-            line-height: 1;
-            letter-spacing: -2px;
-        }
-
-        .year-title {
-            margin-top: 18px;
+        .about-heading h2 {
             color: #164c65;
-            font-size: 20px;
+            font-size: 36px;
             font-weight: 800;
         }
 
-        .year-text {
-            margin-top: 7px;
-            color: #647b86;
-            font-size: 15px;
-            line-height: 1.75;
+        .about-text {
+            max-width: 900px;
+            margin: 0 auto;
+        }
+
+        .about-text p {
+            margin-bottom: 16px;
+            color: #536b76;
+            font-size: 17px;
+            line-height: 1.9;
+        }
+
+        .about-text strong {
+            color: #087ead;
+            font-weight: 800;
+        }
+
+        .about-highlights {
+            max-width: 900px;
+            margin: 38px auto 0;
+            display: grid;
+            grid-template-columns: repeat(3, minmax(0,1fr));
+            gap: 16px;
+        }
+
+        .about-highlight {
+            padding: 22px 24px;
+            border-top: 3px solid #0797d3;
+            background: rgba(255,255,255,.72);
+            box-shadow: 0 8px 24px rgba(18,73,96,.06);
+            backdrop-filter: blur(5px);
+        }
+
+        .about-highlight strong {
+            display: block;
+            margin-bottom: 4px;
+            color: #164c65;
+            font-size: 22px;
+            font-weight: 800;
+        }
+
+        .about-highlight span {
+            color: #6b818b;
+            font-size: 14px;
+        }
+
+        @media (max-width: 700px) {
+            .about-heading h2 { font-size: 31px; }
+            .about-text p { font-size: 16px; }
+            .about-highlights { grid-template-columns: 1fr; gap: 12px; }
+            .about-highlight { padding: 18px 20px; }
+            .about::before { width: 220px; height: 220px; right: -130px; top: -120px; }
         }
 
         /* =========================
@@ -1154,86 +1145,12 @@ header.site-header{
 .more-news a{display:inline-block;color:#0797d3;font-weight:800}
 
 
-        /* ===== 首頁背景層次：減少大片純白 ===== */
-        body {
-            background: #edf6fa;
-        }
-
-        .about {
-            position: relative;
-            overflow: hidden;
-            background:
-                radial-gradient(circle at 8% 18%, rgba(7,151,211,.18) 0 170px, transparent 171px),
-                radial-gradient(circle at 92% 82%, rgba(7,151,211,.13) 0 240px, transparent 241px),
-                linear-gradient(135deg, #e5f5fb 0%, #d7eef7 52%, #f5fbfd 100%);
-        }
-
-        .about::before {
-            content: "";
-            position: absolute;
-            width: 320px;
-            height: 320px;
-            left: -180px;
-            bottom: -190px;
-            border: 42px solid rgba(7,151,211,.09);
-            border-radius: 50%;
-            pointer-events: none;
-        }
-
-        .about::after {
-            content: "";
-            position: absolute;
-            width: 430px;
-            height: 430px;
-            right: -250px;
-            top: -230px;
-            border: 1px solid rgba(7,151,211,.22);
-            border-radius: 50%;
-            pointer-events: none;
-        }
-
-        .about-container {
-            position: relative;
-            z-index: 1;
-        }
-
-        .categories {
-            background: linear-gradient(180deg, #f4fafc 0%, #e8f4f8 100%);
-        }
-
-        .news-section {
-            background:
-                radial-gradient(circle at 92% 15%, rgba(7,151,211,.14) 0 200px, transparent 201px),
-                linear-gradient(135deg, #dceff7 0%, #eaf6fa 65%, #f5fbfd 100%);
-        }
-
-        .guestbook-section {
-            background: linear-gradient(180deg, #eaf6fa 0%, #f5fbfd 100%);
-        }
-
-        .contact {
-            background: #e3f0f5;
-        }
-
-        @media (max-width: 700px) {
-            .about {
-                background:
-                    radial-gradient(circle at 100% 10%, rgba(7,151,211,.15) 0 130px, transparent 131px),
-                    linear-gradient(145deg, #e5f5fb, #d9eff7 70%, #f4fafc);
-            }
-            .about::before,
-            .about::after {
-                display: none;
-            }
-        }
-
-
-        @media (max-width: 850px) {
-            .about-year { min-height: 250px; }
-            .about-year > div { padding: 54px 30px 34px; }
-            .about-year::after { left: 30px; top: 34px; }
-            .year-number { font-size: 56px; }
-        }
+        /* ===== 首頁背景層次 ===== */
+        body { background: #edf6fa; }
+        .categories { background: linear-gradient(180deg, #f4fafc 0%, #e8f4f8 100%); }
+        .news-section { background: radial-gradient(circle at 92% 15%, rgba(7,151,211,.14) 0 200px, transparent 201px), linear-gradient(135deg, #dceff7 0%, #eaf6fa 65%, #f5fbfd 100%); }
+        .guestbook-section { background: linear-gradient(180deg, #eaf6fa 0%, #f5fbfd 100%); }
+        .contact { background: #e3f0f5; }
 
     </style>
 
@@ -1254,65 +1171,44 @@ header.site-header{
 
 
 <!-- ABOUT -->
-
 <section class="about" id="about">
-
     <div class="about-container">
+        <div class="about-heading">
+            <span>ABOUT FUZIKON</span>
+            <h2>關於富致康</h2>
+        </div>
 
         <div class="about-text">
-
-            <h2>
-                關於富致康
-            </h2>
-
             <p>
-                富致康醫療器材成立經營於2010年，
-                專營各式醫療器材、醫療儀器設備、
-                輔具用品、醫療耗材及保健相關產品，
-                提供產品批發、零售與維修服務。
+                富致康醫療器材成立經營於<strong>2010年</strong>，專營各式醫療器材、醫療儀器設備、
+                輔具用品、醫療耗材及保健相關產品，提供產品批發、零售與維修服務。
             </p>
-
             <p>
-                我們提供輪椅、四輪椅、助行器、柺杖、
-                馬桶椅、氣墊床及各式醫療器材與相關配件，
+                我們提供輪椅、四輪椅、助行器、柺杖、馬桶椅、氣墊床及各式醫療器材與相關配件，
                 依照不同使用需求協助顧客選擇合適的產品。
             </p>
-
             <p>
-                除了醫療器材與輔具銷售外，
-                富致康亦提供各式輔具維修服務，
-                從產品選購、配件到後續維修，
-                提供完整且專業的服務。
+                除了醫療器材與輔具銷售外，富致康亦提供各式輔具維修服務，
+                從產品選購、配件到後續維修，提供完整且專業的服務。
             </p>
-
         </div>
 
-        <div class="about-year">
-
-            <div>
-
-                <div class="year-label">SINCE</div>
-
-                <div class="year-number">
-                    2010
-                </div>
-
-                <div class="year-title">
-                    專業醫療器材服務
-                </div>
-
-                <div class="year-text">
-                    醫療器材・輔具用品・維修服務
-                </div>
-
+        <div class="about-highlights">
+            <div class="about-highlight">
+                <strong>2010</strong>
+                <span>成立經營</span>
             </div>
-
+            <div class="about-highlight">
+                <strong>醫療器材・輔具</strong>
+                <span>產品批發與零售</span>
+            </div>
+            <div class="about-highlight">
+                <strong>專業維修</strong>
+                <span>輔具與相關產品售後服務</span>
+            </div>
         </div>
-
     </div>
-
 </section>
-
 
 <!-- CATEGORIES -->
 
