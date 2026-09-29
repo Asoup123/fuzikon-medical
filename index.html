@@ -1235,7 +1235,7 @@ header.site-header{
     top:0;
     left:0;
     right:0;
-    height:12px;
+    height:28px;
     z-index:4999;
     background:transparent;
   }
@@ -1670,7 +1670,7 @@ document.addEventListener("DOMContentLoaded",function(){
   /* 滑鼠直接碰到螢幕最上緣也能叫出導覽列 */
   document.addEventListener("mousemove",function(e){
     if(!mq.matches) return;
-    if(e.clientY <= 10) showHeader();
+    if(e.clientY <= 28) showHeader();
   });
 
   /* 按 ESC 可立即收起 */
