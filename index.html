@@ -1154,6 +1154,56 @@ header.site-header{
 
     </style>
 
+
+<style>
+/* ===== 關於富致康：恢復原本藍色背景，移除資訊卡 ===== */
+.about{
+  position:relative;
+  overflow:hidden;
+  background:
+    radial-gradient(circle at 8% 18%, rgba(7,151,211,.18) 0 170px, transparent 171px),
+    radial-gradient(circle at 92% 82%, rgba(7,151,211,.13) 0 240px, transparent 241px),
+    linear-gradient(135deg,#e5f5fb 0%,#d7eef7 52%,#f5fbfd 100%) !important;
+}
+.about::before{
+  content:"";
+  position:absolute;
+  width:320px;
+  height:320px;
+  left:-180px;
+  bottom:-190px;
+  border:42px solid rgba(7,151,211,.09);
+  border-radius:50%;
+  pointer-events:none;
+}
+.about::after{
+  content:"";
+  position:absolute;
+  width:430px;
+  height:430px;
+  right:-250px;
+  top:-230px;
+  border:1px solid rgba(7,151,211,.22);
+  border-radius:50%;
+  pointer-events:none;
+}
+.about-container{
+  position:relative;
+  z-index:1;
+}
+.about-stats,.about-highlights,.about-cards,.about-info-grid{
+  display:none !important;
+}
+@media(max-width:700px){
+  .about{
+    background:
+      radial-gradient(circle at 100% 10%,rgba(7,151,211,.15) 0 130px,transparent 131px),
+      linear-gradient(145deg,#e5f5fb,#d9eff7 70%,#f4fafc) !important;
+  }
+  .about::before,.about::after{display:none}
+}
+</style>
+
 </head>
 
 <body>
@@ -1192,22 +1242,6 @@ header.site-header{
                 從產品選購、配件到後續維修，提供完整且專業的服務。
             </p>
         </div>
-
-        <div class="about-highlights">
-            <div class="about-highlight">
-                <strong>2010</strong>
-                <span>成立經營</span>
-            </div>
-            <div class="about-highlight">
-                <strong>醫療器材・輔具</strong>
-                <span>產品批發與零售</span>
-            </div>
-            <div class="about-highlight">
-                <strong>專業維修</strong>
-                <span>輔具與相關產品售後服務</span>
-            </div>
-        </div>
-    </div>
 </section>
 
 <!-- CATEGORIES -->
@@ -1482,6 +1516,69 @@ async function loadHomeMessages(){
 }
 loadHomeMessages();
 </script>
+
+<style>
+/* ===== 關於富致康文字進場效果 ===== */
+.about .about-text{
+  max-width:1060px;
+  margin:0 auto;
+}
+.about .about-text h2,
+.about .about-text p{
+  opacity:0;
+  transform:translateY(22px);
+  transition:
+    opacity .75s cubic-bezier(.22,1,.36,1),
+    transform .75s cubic-bezier(.22,1,.36,1);
+}
+.about .about-text.is-visible h2,
+.about .about-text.is-visible p{
+  opacity:1;
+  transform:translateY(0);
+}
+.about .about-text.is-visible h2{transition-delay:.05s}
+.about .about-text.is-visible p:nth-of-type(1){transition-delay:.16s}
+.about .about-text.is-visible p:nth-of-type(2){transition-delay:.28s}
+.about .about-text.is-visible p:nth-of-type(3){transition-delay:.40s}
+
+/* 2010 輕微強調 */
+.about .about-text strong{
+  color:#0797d3;
+}
+
+@media (prefers-reduced-motion:reduce){
+  .about .about-text h2,
+  .about .about-text p{
+    opacity:1;
+    transform:none;
+    transition:none;
+  }
+}
+</style>
+
+<script>
+document.addEventListener("DOMContentLoaded",function(){
+  const aboutText=document.querySelector(".about .about-text");
+  if(!aboutText)return;
+
+  if(!("IntersectionObserver" in window)){
+    aboutText.classList.add("is-visible");
+    return;
+  }
+
+  const observer=new IntersectionObserver((entries,obs)=>{
+    entries.forEach(entry=>{
+      if(entry.isIntersecting){
+        entry.target.classList.add("is-visible");
+        obs.unobserve(entry.target);
+      }
+    });
+  },{threshold:.22});
+
+  observer.observe(aboutText);
+});
+</script>
+
 </body>
 
 </html>
