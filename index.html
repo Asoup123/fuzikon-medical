@@ -1114,7 +1114,81 @@ header.site-header{
 .more-news{text-align:center;margin-top:24px}
 .more-news a{display:inline-block;color:#0797d3;font-weight:800}
 
-</style>
+
+        /* ===== 首頁背景層次：減少大片純白 ===== */
+        body {
+            background: #f6fafc;
+        }
+
+        .about {
+            position: relative;
+            overflow: hidden;
+            background:
+                radial-gradient(circle at 8% 18%, rgba(7,151,211,.10) 0 150px, transparent 151px),
+                radial-gradient(circle at 92% 82%, rgba(7,151,211,.07) 0 220px, transparent 221px),
+                linear-gradient(135deg, #f7fcfe 0%, #edf8fc 52%, #ffffff 100%);
+        }
+
+        .about::before {
+            content: "";
+            position: absolute;
+            width: 320px;
+            height: 320px;
+            left: -180px;
+            bottom: -190px;
+            border: 42px solid rgba(7,151,211,.045);
+            border-radius: 50%;
+            pointer-events: none;
+        }
+
+        .about::after {
+            content: "";
+            position: absolute;
+            width: 430px;
+            height: 430px;
+            right: -250px;
+            top: -230px;
+            border: 1px solid rgba(7,151,211,.12);
+            border-radius: 50%;
+            pointer-events: none;
+        }
+
+        .about-container {
+            position: relative;
+            z-index: 1;
+        }
+
+        .categories {
+            background: linear-gradient(180deg, #ffffff 0%, #f5fafc 100%);
+        }
+
+        .news-section {
+            background:
+                radial-gradient(circle at 92% 15%, rgba(7,151,211,.065) 0 180px, transparent 181px),
+                #eef7fb;
+        }
+
+        .guestbook-section {
+            background: linear-gradient(180deg, #f8fcfd 0%, #ffffff 100%);
+        }
+
+        .contact {
+            background: #f3f8fa;
+        }
+
+        @media (max-width: 700px) {
+            .about {
+                background:
+                    radial-gradient(circle at 100% 10%, rgba(7,151,211,.08) 0 120px, transparent 121px),
+                    linear-gradient(145deg, #f7fcfe, #edf8fc 70%, #fff);
+            }
+            .about::before,
+            .about::after {
+                display: none;
+            }
+        }
+
+    </style>
 
 </head>
 
