@@ -351,39 +351,78 @@
         }
 
         .about-year {
-            min-height: 330px;
-
+            min-height: 300px;
             display: flex;
             align-items: center;
             justify-content: center;
-
-            text-align: center;
-
-            color: white;
-
+            text-align: left;
+            color: #164c65;
+            border: 1px solid rgba(7,151,211,.18);
             border-radius: 24px;
+            background: rgba(255,255,255,.78);
+            box-shadow: 0 18px 45px rgba(19,91,120,.10);
+            backdrop-filter: blur(8px);
+            position: relative;
+            overflow: hidden;
+        }
 
-            background:
-                linear-gradient(
-                    135deg,
-                    #079bd8,
-                    #066e9c
-                );
+        .about-year::before {
+            content: "";
+            position: absolute;
+            width: 190px;
+            height: 190px;
+            right: -70px;
+            top: -80px;
+            border-radius: 50%;
+            background: rgba(7,151,211,.09);
+        }
 
-            box-shadow:
-                0 18px 45px rgba(7,155,216,0.22);
+        .about-year::after {
+            content: "";
+            position: absolute;
+            left: 42px;
+            top: 42px;
+            width: 42px;
+            height: 4px;
+            border-radius: 10px;
+            background: #0797d3;
+        }
+
+        .about-year > div {
+            width: 100%;
+            padding: 58px 42px 42px;
+            position: relative;
+            z-index: 1;
+        }
+
+        .year-label {
+            color: #0797d3;
+            font-size: 13px;
+            font-weight: 800;
+            letter-spacing: 2px;
+            margin-bottom: 8px;
         }
 
         .year-number {
-            font-size: 72px;
+            color: #087ead;
+            font-size: 64px;
             font-weight: 900;
             line-height: 1;
+            letter-spacing: -2px;
+        }
+
+        .year-title {
+            margin-top: 18px;
+            color: #164c65;
+            font-size: 20px;
+            font-weight: 800;
         }
 
         .year-text {
-            margin-top: 12px;
-
-            font-size: 18px;
+            margin-top: 7px;
+            color: #647b86;
+            font-size: 15px;
+            line-height: 1.75;
         }
 
         /* =========================
@@ -1188,6 +1227,14 @@ header.site-header{
             }
         }
 
+
+        @media (max-width: 850px) {
+            .about-year { min-height: 250px; }
+            .about-year > div { padding: 54px 30px 34px; }
+            .about-year::after { left: 30px; top: 34px; }
+            .year-number { font-size: 56px; }
+        }
+
     </style>
 
 </head>
@@ -1244,12 +1291,18 @@ header.site-header{
 
             <div>
 
+                <div class="year-label">SINCE</div>
+
                 <div class="year-number">
                     2010
                 </div>
 
+                <div class="year-title">
+                    專業醫療器材服務
+                </div>
+
                 <div class="year-text">
-                    富致康醫療器材成立經營
+                    醫療器材・輔具用品・維修服務
                 </div>
 
             </div>
