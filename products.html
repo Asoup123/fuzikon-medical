@@ -1695,6 +1695,37 @@ svg{
 }
 </style>
 
+
+<style id="mobile-swipe-gallery-style">
+/* ===== 商品詳細主圖：手機 / 平板手指左右滑動 ===== */
+@media (max-width:900px){
+  .main-photo{
+    touch-action:pan-y !important;
+    user-select:none;
+    -webkit-user-select:none;
+    -webkit-touch-callout:none;
+    cursor:grab;
+  }
+
+  .main-photo img{
+    pointer-events:none;
+    user-select:none;
+    -webkit-user-drag:none;
+  }
+
+  /* 觸控裝置不需要左右箭頭，下方縮圖仍保留 */
+  .main-photo .photo-arrow,
+  .main-photo .image-arrow,
+  .main-photo .prev,
+  .main-photo .next,
+  .main-photo .prev-btn,
+  .main-photo .next-btn,
+  .main-photo button{
+    display:none !important;
+  }
+}
+</style>
+
 </head>
 
 
@@ -2849,6 +2880,75 @@ document.addEventListener("DOMContentLoaded",function(){
   else mq.addListener(syncMode);
 
   syncMode();
+});
+</script>
+
+
+<script id="mobile-swipe-gallery-script">
+document.addEventListener("DOMContentLoaded",function(){
+  const mq=window.matchMedia("(max-width: 900px)");
+  let startX=0,startY=0,startTime=0,tracking=false;
+
+  function getMainPhoto(target){
+    return target.closest(".main-photo");
+  }
+
+  document.addEventListener("touchstart",function(e){
+    if(!mq.matches || e.touches.length!==1)return;
+    const box=getMainPhoto(e.target);
+    if(!box)return;
+
+    startX=e.touches[0].clientX;
+    startY=e.touches[0].clientY;
+    startTime=Date.now();
+    tracking=true;
+  },{passive:true});
+
+  document.addEventListener("touchend",function(e){
+    if(!mq.matches || !tracking || !e.changedTouches.length)return;
+
+    const box=getMainPhoto(e.target);
+    tracking=false;
+    if(!box)return;
+
+    const dx=e.changedTouches[0].clientX-startX;
+    const dy=e.changedTouches[0].clientY-startY;
+    const elapsed=Date.now()-startTime;
+
+    /* 必須是明確的左右滑，避免正常上下捲動時誤切圖片 */
+    if(elapsed>700 || Math.abs(dx)<45 || Math.abs(dx)<=Math.abs(dy)*1.15)return;
+
+    /* 優先呼叫頁面原本的左右切圖按鈕，保留原本圖片索引與縮圖同步邏輯 */
+    const prev=box.querySelector(
+      ".photo-arrow.prev,.image-arrow.prev,.prev-btn,.prev,[data-direction='prev'],[aria-label*='上一']"
+    );
+    const next=box.querySelector(
+      ".photo-arrow.next,.image-arrow.next,.next-btn,.next,[data-direction='next'],[aria-label*='下一']"
+    );
+
+    if(dx<0 && next){
+      next.click();
+      return;
+    }
+    if(dx>0 && prev){
+      prev.click();
+      return;
+    }
+
+    /* 如果按鈕不在 main-photo 裡，往商品視窗範圍找 */
+    const modal=box.closest("#productModal,.product-modal,.modal");
+    if(!modal)return;
+
+    const modalPrev=modal.querySelector(
+      ".photo-arrow.prev,.image-arrow.prev,.prev-btn,[data-direction='prev'],[aria-label*='上一']"
+    );
+    const modalNext=modal.querySelector(
+      ".photo-arrow.next,.image-arrow.next,.next-btn,[data-direction='next'],[aria-label*='下一']"
+    );
+
+    if(dx<0 && modalNext)modalNext.click();
+    else if(dx>0 && modalPrev)modalPrev.click();
+  },{passive:true});
 });
 </script>
 
