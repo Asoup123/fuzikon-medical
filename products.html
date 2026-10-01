@@ -1535,6 +1535,25 @@ body{background:linear-gradient(180deg,#dff2f9 0%,#eaf6fa 42%,#e4f2f7 100%);}
 }
 </style>
 
+
+<style id="product-modal-header-fix">
+/* 商品詳細視窗開啟時：所有裝置隱藏 Header，不干擾商品卡點擊 */
+body.modal-open header.site-header,
+body.modal-open > header:first-of-type{
+  transform:translateY(calc(-100% - 12px)) !important;
+  visibility:hidden !important;
+  pointer-events:none !important;
+}
+body.modal-open #header-hover-zone{
+  display:none !important;
+}
+
+/* 商品詳細視窗保持在最上層 */
+#productModal.show{
+  z-index:9999 !important;
+}
+</style>
+
 </head>
 
 
@@ -2692,33 +2711,5 @@ document.addEventListener("DOMContentLoaded",function(){
 });
 </script>
 
-<style id="product-modal-header-fix">
-body.product-modal-open header.site-header,
-body.product-modal-open > header:first-of-type{
-  transform:translateY(calc(-100% - 12px)) !important;
-  visibility:hidden !important;
-  pointer-events:none !important;
-}
-body.product-modal-open #header-hover-zone{display:none !important;}
-</style>
-<script id="product-modal-header-fix-script">
-document.addEventListener("DOMContentLoaded",function(){
-  const header=document.querySelector("header.site-header")||document.querySelector("body > header");
-  if(!header)return;
-  function visible(el){
-    const c=getComputedStyle(el),r=el.getBoundingClientRect();
-    return c.display!=="none"&&c.visibility!=="hidden"&&Number(c.opacity||1)>0&&r.width>0&&r.height>0;
-  }
-  function sync(){
-    const opened=[...document.querySelectorAll(".modal,.product-modal,[class*='modal-overlay'],[role='dialog']")].some(visible);
-    document.body.classList.toggle("product-modal-open",opened);
-    if(opened)header.classList.remove("header-visible");
-  }
-  new MutationObserver(sync).observe(document.body,{subtree:true,childList:true,attributes:true,attributeFilter:["class","style","hidden","open"]});
-  document.addEventListener("click",()=>{requestAnimationFrame(sync);setTimeout(sync,80);});
-  document.addEventListener("keydown",()=>requestAnimationFrame(sync));
-  sync();
-});
-</script>
 </body>
 </html>
