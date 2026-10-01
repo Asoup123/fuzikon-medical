@@ -1726,6 +1726,138 @@ svg{
 }
 </style>
 
+
+<style id="modal-scroll-close-fix">
+/* =========================================================
+   商品詳細視窗：
+   1. 背景頁面完全鎖定
+   2. 小卡本身可上下滑
+   3. 主圖保留左右滑切圖
+   4. X 固定在小卡右上「尖角」上
+========================================================= */
+
+/* modal 開啟時，背景頁不接受觸控/捲動 */
+body.modal-open{
+  overflow:hidden !important;
+  overscroll-behavior:none !important;
+}
+
+/* 外層只負責遮罩與定位，不讓滑動穿透背景 */
+#productModal{
+  overscroll-behavior:contain;
+  touch-action:none;
+}
+
+/* 小卡外框本身不要裁掉突出在尖角上的 X */
+#productModal .modal-dialog{
+  position:relative !important;
+  overflow:visible !important;
+  max-height:92dvh !important;
+}
+
+/* 真正上下捲動改由內容區負責 */
+#productModal .modal-inner{
+  max-height:92dvh !important;
+  overflow-y:auto !important;
+  overflow-x:hidden !important;
+  overscroll-behavior:contain !important;
+  -webkit-overflow-scrolling:touch;
+  border-radius:20px;
+  background:inherit;
+}
+
+/* X：中心直接壓在右上尖角 */
+#productModal .modal-close{
+  position:absolute !important;
+  top:0 !important;
+  right:0 !important;
+  transform:translate(50%,-50%) !important;
+  float:none !important;
+  margin:0 !important;
+
+  width:42px !important;
+  height:42px !important;
+  display:flex !important;
+  align-items:center !important;
+  justify-content:center !important;
+
+  z-index:100 !important;
+  border:1px solid rgba(7,151,211,.16) !important;
+  border-radius:50% !important;
+  background:#fff !important;
+  color:#36515e !important;
+  box-shadow:0 6px 18px rgba(0,55,80,.18) !important;
+  font-size:26px !important;
+  line-height:1 !important;
+  cursor:pointer;
+}
+
+/* 圖片區只處理：左右滑圖片 + 頁面上下手勢 */
+#productModal .main-photo{
+  touch-action:pan-y !important;
+  overscroll-behavior:contain;
+}
+
+/* 避免圖片本身被瀏覽器拖曳 */
+#productModal .main-photo img{
+  -webkit-user-drag:none;
+  user-select:none;
+  -webkit-user-select:none;
+}
+
+/* 手機 / 平板 */
+@media(max-width:900px){
+  #productModal{
+    padding:18px !important;
+  }
+
+  #productModal .modal-dialog{
+    width:calc(100vw - 36px) !important;
+    max-width:calc(100vw - 36px) !important;
+    max-height:calc(100dvh - 36px) !important;
+  }
+
+  #productModal .modal-inner{
+    max-height:calc(100dvh - 36px) !important;
+    padding-top:34px !important; /* 內容與尖角 X 保持安全距離 */
+  }
+
+  /* 觸控裝置隱藏主圖左右箭頭 */
+  #productModal .main-photo .photo-arrow,
+  #productModal .main-photo .image-arrow,
+  #productModal .main-photo .prev,
+  #productModal .main-photo .next,
+  #productModal .main-photo .prev-btn,
+  #productModal .main-photo .next-btn,
+  #productModal .main-photo button{
+    display:none !important;
+  }
+}
+
+/* 窄手機多留一點邊界，讓突出 X 不碰螢幕 */
+@media(max-width:600px){
+  #productModal{
+    padding:20px !important;
+  }
+
+  #productModal .modal-dialog{
+    width:calc(100vw - 40px) !important;
+    max-width:calc(100vw - 40px) !important;
+    max-height:calc(100dvh - 40px) !important;
+  }
+
+  #productModal .modal-inner{
+    max-height:calc(100dvh - 40px) !important;
+  }
+
+  #productModal .modal-close{
+    width:40px !important;
+    height:40px !important;
+    font-size:24px !important;
+  }
+}
+</style>
+
 </head>
 
 
@@ -2591,6 +2723,15 @@ function openProduct(id) {
 
     `;
 
+    /* 鎖住背景頁：iPhone Safari 也不會滑到後面的產品頁 */
+    window.__productModalScrollY = window.scrollY || window.pageYOffset || 0;
+
+    document.body.style.position = "fixed";
+    document.body.style.top = `-${window.__productModalScrollY}px`;
+    document.body.style.left = "0";
+    document.body.style.right = "0";
+    document.body.style.width = "100%";
+
     modal.classList.add("show");
     document.body.classList.add("modal-open");
 
@@ -2680,6 +2821,17 @@ function closeModal() {
 
     modal.classList.remove("show");
     document.body.classList.remove("modal-open");
+
+    const restoreY = Number(window.__productModalScrollY || 0);
+
+    document.body.style.position = "";
+    document.body.style.top = "";
+    document.body.style.left = "";
+    document.body.style.right = "";
+    document.body.style.width = "";
+
+    window.scrollTo(0, restoreY);
+    window.__productModalScrollY = 0;
 }
 
 
@@ -2950,6 +3102,21 @@ document.addEventListener("DOMContentLoaded",function(){
     else if(dx>0 && modalPrev)modalPrev.click();
   },{passive:true});
 });
+</script>
+
+
+<script id="modal-scroll-lock-fix">
+(function(){
+  const modal = document.getElementById("productModal");
+  if(!modal) return;
+
+  modal.addEventListener("touchmove", function(e){
+    /* 只有小卡內容區可以上下捲動；遮罩區不允許手勢穿透 */
+    if(!e.target.closest(".modal-inner")){
+      e.preventDefault();
+    }
+  }, {passive:false});
+})();
 </script>
 
 </body>
