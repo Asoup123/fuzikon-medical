@@ -1858,6 +1858,33 @@ body.modal-open{
 }
 </style>
 
+
+<style id="modal-no-return-scroll-fix">
+html:has(body.modal-open){
+  overflow:hidden !important;
+  overscroll-behavior:none !important;
+}
+
+body.modal-open{
+  overflow:hidden !important;
+  overscroll-behavior:none !important;
+  touch-action:none;
+}
+
+/* 小卡內容仍可正常上下滑 */
+body.modal-open #productModal .modal-inner{
+  touch-action:pan-y !important;
+  overflow-y:auto !important;
+  overscroll-behavior:contain !important;
+  -webkit-overflow-scrolling:touch;
+}
+
+/* 主圖維持左右滑切圖的事件，同時允許自然的垂直手勢判斷 */
+body.modal-open #productModal .main-photo{
+  touch-action:pan-y !important;
+}
+</style>
+
 </head>
 
 
@@ -2723,15 +2750,7 @@ function openProduct(id) {
 
     `;
 
-    /* 鎖住背景頁：iPhone Safari 也不會滑到後面的產品頁 */
-    window.__productModalScrollY = window.scrollY || window.pageYOffset || 0;
-
-    document.body.style.position = "fixed";
-    document.body.style.top = `-${window.__productModalScrollY}px`;
-    document.body.style.left = "0";
-    document.body.style.right = "0";
-    document.body.style.width = "100%";
-
+    /* 開啟小卡：背景停在目前位置，不搬動頁面、不重新定位 */
     modal.classList.add("show");
     document.body.classList.add("modal-open");
 
@@ -2819,19 +2838,9 @@ function openProduct(id) {
 
 function closeModal() {
 
+    /* 關閉後直接停在原本商品位置，不執行 scrollTo、不產生回捲動畫 */
     modal.classList.remove("show");
     document.body.classList.remove("modal-open");
-
-    const restoreY = Number(window.__productModalScrollY || 0);
-
-    document.body.style.position = "";
-    document.body.style.top = "";
-    document.body.style.left = "";
-    document.body.style.right = "";
-    document.body.style.width = "";
-
-    window.scrollTo(0, restoreY);
-    window.__productModalScrollY = 0;
 }
 
 
