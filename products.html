@@ -1885,6 +1885,13 @@ body.modal-open #productModal .main-photo{
 }
 </style>
 
+<style id="mobile-pinch-zoom-style">
+@media(max-width:900px){
+#productModal .main-photo{overflow:hidden!important;touch-action:none!important;position:relative}
+#productModal .main-photo img{transform-origin:center center;will-change:transform;transition:transform .18s ease;-webkit-user-drag:none;user-select:none}
+#productModal .main-photo.is-zooming img{transition:none}
+}
+</style>
 </head>
 
 
@@ -3045,6 +3052,19 @@ document.addEventListener("DOMContentLoaded",function(){
 </script>
 
 
+<script id="mobile-pinch-zoom-script">
+(function(){
+const mq=matchMedia("(max-width:900px)");let box,img,scale=1,lastScale=1,x=0,y=0,px=0,dx=0,dy=0,sx=0,sy=0,mode="",busy=false;
+const clamp=(v,a,b)=>Math.max(a,Math.min(b,v)),dist=(a,b)=>Math.hypot(a.clientX-b.clientX,a.clientY-b.clientY);
+function apply(){if(!img||!box)return;let mx=Math.max(0,box.clientWidth*(scale-1)/2),my=Math.max(0,box.clientHeight*(scale-1)/2);x=clamp(x,-mx,mx);y=clamp(y,-my,my);img.style.transform=`translate3d(${x}px,${y}px,0) scale(${scale})`}
+function reset(){if(img){scale=lastScale=1;x=y=0;img.style.transform="translate3d(0,0,0) scale(1)"}if(box)box.classList.remove("is-zooming");mode="";busy=false}
+document.addEventListener("touchstart",e=>{if(!mq.matches)return;let b=e.target.closest("#productModal .main-photo");if(!b)return;box=b;img=b.querySelector("img");if(!img)return;if(e.touches.length===2){mode="pinch";busy=true;px=dist(e.touches[0],e.touches[1]);lastScale=scale;box.classList.add("is-zooming");e.preventDefault()}else if(e.touches.length===1&&scale>1){mode="drag";busy=true;dx=e.touches[0].clientX;dy=e.touches[0].clientY;sx=x;sy=y;box.classList.add("is-zooming");e.preventDefault()}},{passive:false,capture:true});
+document.addEventListener("touchmove",e=>{if(!mq.matches||!box||!img)return;if(mode==="pinch"&&e.touches.length===2){scale=clamp(lastScale*dist(e.touches[0],e.touches[1])/px,1,4);if(scale<=1.02){scale=1;x=y=0}apply();e.preventDefault()}else if(mode==="drag"&&e.touches.length===1&&scale>1){x=sx+e.touches[0].clientX-dx;y=sy+e.touches[0].clientY-dy;apply();e.preventDefault()}},{passive:false,capture:true});
+document.addEventListener("touchend",e=>{if(!mq.matches||!box)return;if(mode==="pinch"&&e.touches.length===1&&scale>1){mode="drag";dx=e.touches[0].clientX;dy=e.touches[0].clientY;sx=x;sy=y;return}if(!e.touches.length){if(scale<=1.02)reset();else{mode="";box.classList.remove("is-zooming")}setTimeout(()=>busy=false,100)}},{passive:true,capture:true});
+document.addEventListener("click",e=>{if(e.target.closest("#productModal .modal-close,#productModal .thumb-list,#productModal .thumbnail-list"))reset()},true);
+window.productImageIsZoomed=()=>scale>1.02||busy;
+})();
+</script>
 <script id="mobile-swipe-gallery-script">
 document.addEventListener("DOMContentLoaded",function(){
   const mq=window.matchMedia("(max-width: 900px)");
@@ -3067,6 +3087,7 @@ document.addEventListener("DOMContentLoaded",function(){
 
   document.addEventListener("touchend",function(e){
     if(!mq.matches || !tracking || !e.changedTouches.length)return;
+    if(window.productImageIsZoomed && window.productImageIsZoomed()){ tracking=false; return; }
 
     const box=getMainPhoto(e.target);
     tracking=false;
