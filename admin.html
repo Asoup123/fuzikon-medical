@@ -367,6 +367,12 @@ main{width:92%;max-width:1280px;margin:32px auto 70px}.top{display:flex;justify-
 <button id="newBtn" class="primary">＋ 新增商品</button>
 </div>
 
+<div style="margin:14px 0;padding:14px;border:1px solid #d6e7ee;border-radius:10px;background:#f5fbfe">
+  <strong>舊商品圖片 WebP 縮圖補建</strong>
+  <p style="margin:6px 0 10px;font-size:13px;color:#516a76">每次最多處理 5 張尚未建立縮圖的圖片。只新增 thumbnails/ 檔案，不修改原圖、商品資料或排序。</p>
+  <button type="button" id="batchThumbFive" class="soft">產生 5 張舊圖片縮圖</button>
+  <div id="batchThumbStatus" role="status" aria-live="polite" style="margin-top:8px;font-size:13px;white-space:pre-line"></div>
+</div>
 <div class="sort-note">☰ 可直接拖曳商品調整順序；排序欄也可手動輸入數字，系統會自動避免重複順序。</div>
 <div class="filters">
   <input id="productSearch" type="search" placeholder="搜尋商品名稱">
@@ -1317,6 +1323,67 @@ async function uploadProductImage(file){
  }catch(err){console.warn("商品 WebP 縮圖建立失敗：",err);$("saveMsg").textContent="原圖上傳成功，但縮圖建立失敗："+err.message}
  return originalUrl;
 }
+// 批次補建：從現有 products 資料讀取原圖，檢查 thumbnails 是否已存在。
+// 不需 service-role key；使用目前已登入管理員的 Supabase 權限。
+let batchThumbnailRunning=false;
+async function listExistingThumbnailNames(){
+ const names=new Set();
+ let offset=0;
+ while(true){
+  const {data,error}=await db.storage.from("product-images").list("thumbnails",{limit:1000,offset,sortBy:{column:"name",order:"asc"}});
+  if(error)throw new Error("讀取 thumbnails 失敗："+error.message);
+  const rows=data||[];
+  for(const row of rows)if(row.name)names.add(row.name);
+  if(rows.length<1000)break;
+  offset+=rows.length;
+ }
+ return names;
+}
+async function batchCreateFiveThumbnails(){
+ if(batchThumbnailRunning)return;
+ const button=$("batchThumbFive"),status=$("batchThumbStatus");
+ batchThumbnailRunning=true;button.disabled=true;
+ try{
+  status.textContent="正在讀取現有圖片與縮圖清單…";
+  const {data,error}=await db.from("products").select("image_urls");
+  if(error)throw new Error("讀取商品圖片失敗："+error.message);
+  const urls=[...new Set((data||[]).flatMap(p=>Array.isArray(p.image_urls)?p.image_urls:[]).filter(Boolean))];
+  const existing=await listExistingThumbnailNames();
+  const jobs=[];
+  for(const url of urls){
+   const path=storagePathFromUrl(url);
+   const thumb=productThumbnailPath(path);
+   if(!thumb)continue;
+   const filename=thumb.slice("thumbnails/".length);
+   if(!existing.has(filename))jobs.push({url,thumb,filename});
+  }
+  if(!jobs.length){status.textContent=`完成檢查：${urls.length} 張商品圖片都已有縮圖（或不是 products/ 路徑）。`;return}
+  const selection=jobs.slice(0,5);
+  let success=0,failed=0,skipped=0;
+  for(let i=0;i<selection.length;i++){
+   const job=selection[i];
+   status.textContent=`第 ${i+1}/${selection.length} 張處理中… 已成功 ${success} 張，失敗 ${failed} 張`;
+   try{
+    const response=await fetch(job.url,{mode:"cors",credentials:"omit"});
+    if(!response.ok)throw new Error("下載原圖 HTTP "+response.status);
+    const originalBlob=await response.blob();
+    if(!originalBlob.type.startsWith("image/"))throw new Error("原始檔案不是圖片");
+    const webp=await createProductThumbnail(originalBlob);
+    if(!webp)throw new Error("圖片無法轉換");
+    const {error:uploadError}=await db.storage.from("product-images").upload(job.thumb,webp,{contentType:"image/webp",upsert:false});
+    if(uploadError){
+     if(uploadError.statusCode==="409"||/already exists|duplicate/i.test(uploadError.message||"")){skipped++;continue}
+     throw uploadError;
+    }
+    success++;existing.add(job.filename);
+   }catch(err){failed++;console.warn("舊圖片縮圖失敗：",job.filename,err)}
+  }
+  status.textContent=`本次完成：新增 ${success} 張、已存在 ${skipped} 張、失敗 ${failed} 張。原本待補 ${jobs.length} 張。${failed?"如有失敗請開啟 F12 Console 查看原因。":"可按 F12 → Network 確認 WebP 回應 200，再繼續下一批。"}`;
+ }catch(err){status.textContent="無法執行："+err.message;console.error("WebP 批次處理失敗",err)}
+ finally{batchThumbnailRunning=false;button.disabled=false}
+}
+$("batchThumbFive").addEventListener("click",batchCreateFiveThumbnails);
+
 async function deleteStorageUrlsIfUnused(urls){
  const unique=[...new Set((urls||[]).filter(Boolean))];
  if(!unique.length)return;
