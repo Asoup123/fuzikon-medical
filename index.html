@@ -1152,6 +1152,17 @@ header.site-header{
         .guestbook-section { background: linear-gradient(180deg, #eaf6fa 0%, #f5fbfd 100%); }
         .contact { background: #e3f0f5; }
 
+
+/* ===== 首頁 YouTube 影片展示 ===== */
+.home-video-section{background:linear-gradient(180deg,#f5fbfd,#e7f3f8);padding:76px 8%}
+.home-video-layout{max-width:1120px;margin:auto;display:grid;grid-template-columns:1fr 1.15fr;gap:46px;align-items:center}
+.home-video-copy{min-width:0}
+.home-video-copy h2{font-size:28px;color:#164c65;margin-bottom:16px;overflow-wrap:anywhere}
+.home-video-copy p{color:#536b76;font-size:16px;line-height:1.9;white-space:pre-line;overflow-wrap:anywhere}
+.home-video-frame{aspect-ratio:16/9;border-radius:14px;overflow:hidden;background:#dbeaf0;box-shadow:0 12px 32px rgba(18,73,96,.10)}
+.home-video-frame iframe{width:100%;height:100%;border:0;display:block}
+.home-video-empty{color:#78909c;text-align:center;padding:32px}
+@media(max-width:800px){.home-video-layout{grid-template-columns:1fr;gap:24px}.home-video-copy h2{font-size:24px}}
     </style>
 
 
@@ -1361,6 +1372,17 @@ header.site-header{
 </section>
 
 
+<!-- 首頁影片：從 Supabase home_videos 讀取已公開的指定影片 -->
+<section class="home-video-section" id="homeVideoSection" hidden aria-label="產品影片">
+  <div class="home-video-layout">
+    <div class="home-video-copy">
+      <h2 id="homeVideoTitle"></h2>
+      <p id="homeVideoDescription"></p>
+    </div>
+    <div class="home-video-frame" id="homeVideoFrame"></div>
+  </div>
+</section>
+
 <!-- CONTACT -->
 
 <section class="contact" id="contact">
@@ -1562,6 +1584,44 @@ async function loadHomeMessages(){
  host.innerHTML=data.map(x=>`<article class="message-card"><div class="message-meta"><span class="message-name">${hEsc(x.name)}</span><span>${hDate(x.created_at)}</span></div><div class="message-text">${hEsc(x.message)}</div>${x.reply?`<div class="message-reply"><strong>富致康回覆</strong>${hEsc(x.reply)}</div>`:""}</article>`).join("");
 }
 loadHomeMessages();
+
+// 後台將影片存入 home_videos 後，首頁自動顯示最新一部已公開影片。
+function youtubeVideoId(value){
+  try{
+    const u=new URL(value);
+    const host=u.hostname.toLowerCase().replace(/^www\./,'');
+    let id='';
+    if(host==='youtu.be')id=u.pathname.split('/')[1];
+    else if(['youtube.com','m.youtube.com','youtube-nocookie.com'].includes(host)){
+      if(u.pathname==='/watch')id=u.searchParams.get('v');
+      else if(/^\/(shorts|embed|live)\//.test(u.pathname))id=u.pathname.split('/')[2];
+    }
+    return /^[A-Za-z0-9_-]{11}$/.test(id||'')?id:null;
+  }catch{return null}
+}
+async function loadHomeVideo(){
+  const section=document.getElementById('homeVideoSection');
+  if(!section)return;
+  const {data,error}=await publicDb.from('home_videos')
+    .select('title,description,youtube_url')
+    .eq('is_public',true).order('created_at',{ascending:false}).limit(1);
+  if(error){console.info('首頁影片尚未設定或無法讀取:',error.message);return}
+  const video=data?.[0];
+  const id=video&&youtubeVideoId(video.youtube_url);
+  if(!id)return;
+  document.getElementById('homeVideoTitle').textContent=video.title||'';
+  document.getElementById('homeVideoDescription').textContent=video.description||'';
+  const iframe=document.createElement('iframe');
+  iframe.src='https://www.youtube-nocookie.com/embed/'+id;
+  iframe.title=video.title||'YouTube 影片';
+  iframe.loading='lazy';
+  iframe.allow='accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share';
+  iframe.allowFullscreen=true;
+  document.getElementById('homeVideoFrame').replaceChildren(iframe);
+  section.hidden=false;
+}
+loadHomeVideo();
+
 </script>
 
 <style>
