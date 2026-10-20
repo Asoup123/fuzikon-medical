@@ -369,8 +369,10 @@ main{width:92%;max-width:1280px;margin:32px auto 70px}.top{display:flex;justify-
 
 <div style="margin:14px 0;padding:14px;border:1px solid #d6e7ee;border-radius:10px;background:#f5fbfe">
   <strong>舊商品圖片 WebP 縮圖補建</strong>
-  <p style="margin:6px 0 10px;font-size:13px;color:#516a76">每次最多處理 5 張尚未建立縮圖的圖片。只新增 thumbnails/ 檔案，不修改原圖、商品資料或排序。</p>
-  <button type="button" id="batchThumbFive" class="soft">產生 5 張舊圖片縮圖</button>
+  <p style="margin:6px 0 10px;font-size:13px;color:#516a76">自動分批處理尚未建立縮圖的舊圖片（每批 5 張），可隨時停止。只新增 thumbnails/ 檔案，不修改原圖、商品資料或排序。</p>
+  <button type="button" id="batchThumbFive" class="soft">一鍵產生全部剩餘縮圖</button>
+  <button type="button" id="batchThumbStop" class="soft" disabled style="margin-left:8px">停止（完成目前這張）</button>
+  <progress id="batchThumbProgress" value="0" max="100" style="display:none;width:100%;margin-top:10px;height:12px"></progress>
   <div id="batchThumbStatus" role="status" aria-live="polite" style="margin-top:8px;font-size:13px;white-space:pre-line"></div>
 </div>
 <div class="sort-note">☰ 可直接拖曳商品調整順序；排序欄也可手動輸入數字，系統會自動避免重複順序。</div>
@@ -1326,6 +1328,8 @@ async function uploadProductImage(file){
 // 批次補建：從現有 products 資料讀取原圖，檢查 thumbnails 是否已存在。
 // 不需 service-role key；使用目前已登入管理員的 Supabase 權限。
 let batchThumbnailRunning=false;
+let batchThumbnailStopRequested=false;
+const waitForThumbnailBatch=ms=>new Promise(resolve=>setTimeout(resolve,ms));
 async function listExistingThumbnailNames(){
  const names=new Set();
  let offset=0;
@@ -1339,30 +1343,38 @@ async function listExistingThumbnailNames(){
  }
  return names;
 }
-async function batchCreateFiveThumbnails(){
+async function batchCreateAllThumbnails(){
  if(batchThumbnailRunning)return;
- const button=$("batchThumbFive"),status=$("batchThumbStatus");
- batchThumbnailRunning=true;button.disabled=true;
+ const button=$("batchThumbFive"),stopButton=$("batchThumbStop"),status=$("batchThumbStatus"),progress=$("batchThumbProgress");
+ batchThumbnailRunning=true;batchThumbnailStopRequested=false;
+ button.disabled=true;stopButton.disabled=false;progress.style.display="block";progress.value=0;
+ let success=0,failed=0,skipped=0,processed=0,total=0;
  try{
-  status.textContent="正在讀取現有圖片與縮圖清單…";
-  const {data,error}=await db.from("products").select("image_urls");
-  if(error)throw new Error("讀取商品圖片失敗："+error.message);
-  const urls=[...new Set((data||[]).flatMap(p=>Array.isArray(p.image_urls)?p.image_urls:[]).filter(Boolean))];
+  status.textContent="正在讀取商品與現有縮圖…";
+  // 分頁讀取，避免商品數量增加後受到單次查詢筆數限制。
+  const urlsSet=new Set();
+  for(let offset=0;;offset+=500){
+   const {data,error}=await db.from("products").select("image_urls").range(offset,offset+499);
+   if(error)throw new Error("讀取商品圖片失敗："+error.message);
+   const rows=data||[];
+   for(const p of rows)if(Array.isArray(p.image_urls))for(const u of p.image_urls)if(u)urlsSet.add(u);
+   if(rows.length<500)break;
+  }
   const existing=await listExistingThumbnailNames();
   const jobs=[];
-  for(const url of urls){
+  for(const url of urlsSet){
    const path=storagePathFromUrl(url);
    const thumb=productThumbnailPath(path);
    if(!thumb)continue;
    const filename=thumb.slice("thumbnails/".length);
    if(!existing.has(filename))jobs.push({url,thumb,filename});
   }
-  if(!jobs.length){status.textContent=`完成檢查：${urls.length} 張商品圖片都已有縮圖（或不是 products/ 路徑）。`;return}
-  const selection=jobs.slice(0,5);
-  let success=0,failed=0,skipped=0;
-  for(let i=0;i<selection.length;i++){
-   const job=selection[i];
-   status.textContent=`第 ${i+1}/${selection.length} 張處理中… 已成功 ${success} 張，失敗 ${failed} 張`;
+  total=jobs.length;progress.max=Math.max(1,total);
+  if(!total){status.textContent=`檢查完成：目前沒有需要補建的縮圖（共檢查 ${urlsSet.size} 個商品圖片網址）。`;return}
+  for(let i=0;i<jobs.length;i++){
+   if(batchThumbnailStopRequested)break;
+   const job=jobs[i];
+   status.textContent=`處理中：${i+1} / ${total} 張\n成功 ${success}｜已存在 ${skipped}｜失敗 ${failed}\n可按「停止」在目前圖片完成後結束。`;
    try{
     const response=await fetch(job.url,{mode:"cors",credentials:"omit"});
     if(!response.ok)throw new Error("下載原圖 HTTP "+response.status);
@@ -1372,17 +1384,23 @@ async function batchCreateFiveThumbnails(){
     if(!webp)throw new Error("圖片無法轉換");
     const {error:uploadError}=await db.storage.from("product-images").upload(job.thumb,webp,{contentType:"image/webp",upsert:false});
     if(uploadError){
-     if(uploadError.statusCode==="409"||/already exists|duplicate/i.test(uploadError.message||"")){skipped++;continue}
-     throw uploadError;
-    }
-    success++;existing.add(job.filename);
+     if(String(uploadError.statusCode)==="409"||/already exists|duplicate/i.test(uploadError.message||"")){skipped++}
+     else throw uploadError;
+    }else{success++;existing.add(job.filename)}
    }catch(err){failed++;console.warn("舊圖片縮圖失敗：",job.filename,err)}
+   processed++;progress.value=processed;
+   // 每批 5 張短暫休息，避免大量請求同時擠壓網站與 Storage。
+   if(processed%5===0 && processed<total && !batchThumbnailStopRequested)await waitForThumbnailBatch(500);
   }
-  status.textContent=`本次完成：新增 ${success} 張、已存在 ${skipped} 張、失敗 ${failed} 張。原本待補 ${jobs.length} 張。${failed?"如有失敗請開啟 F12 Console 查看原因。":"可按 F12 → Network 確認 WebP 回應 200，再繼續下一批。"}`;
+  const remain=total-processed;
+  status.textContent=`${batchThumbnailStopRequested?"已依要求停止":"本次處理完成"}：共處理 ${processed}/${total} 張。\n新增 ${success} 張｜已存在 ${skipped} 張｜失敗 ${failed} 張｜尚未處理 ${remain} 張。${failed?"\n失敗項目請查看 F12 → Console；重新執行會跳過已成功建立的縮圖。":""}`;
  }catch(err){status.textContent="無法執行："+err.message;console.error("WebP 批次處理失敗",err)}
- finally{batchThumbnailRunning=false;button.disabled=false}
+ finally{batchThumbnailRunning=false;button.disabled=false;stopButton.disabled=true}
 }
-$("batchThumbFive").addEventListener("click",batchCreateFiveThumbnails);
+$("batchThumbFive").addEventListener("click",batchCreateAllThumbnails);
+$("batchThumbStop").addEventListener("click",()=>{
+ if(batchThumbnailRunning){batchThumbnailStopRequested=true;$("batchThumbStop").disabled=true;$("batchThumbStatus").textContent+="\n正在停止，請等待目前這張完成…"}
+});
 
 async function deleteStorageUrlsIfUnused(urls){
  const unique=[...new Set((urls||[]).filter(Boolean))];
