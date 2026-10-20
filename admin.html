@@ -357,6 +357,7 @@ main{width:92%;max-width:1280px;margin:32px auto 70px}.top{display:flex;justify-
   <button class="admin-tab active" data-panel="productPanel">商品管理</button>
   <button class="admin-tab" data-panel="newsPanel">最新消息</button>
   <button class="admin-tab" data-panel="messagePanel">留言管理</button>
+  <button class="admin-tab" data-panel="videoPanel">影片管理</button>
 </div>
 
 <section id="productPanel" class="admin-panel active">
@@ -490,6 +491,19 @@ main{width:92%;max-width:1280px;margin:32px auto 70px}.top{display:flex;justify-
 <div class="top"><div><h2>留言管理</h2><p>回覆、公開、隱藏或刪除客人留言</p></div><button id="refreshMessages" class="soft">重新整理</button></div>
 <div id="adminMessageList" class="admin-message-list"><div class="msg">留言載入中…</div></div>
 </section>
+</section>
+<section id="videoPanel" class="admin-panel">
+  <div class="top"><div><h1>首頁影片管理</h1><p>設定首頁留言板下方的 YouTube 影片與左側說明</p></div></div>
+  <div class="card news-editor">
+    <div class="field"><label for="videoUrl">YouTube 影片網址</label><input id="videoUrl" type="url" placeholder="https://www.youtube.com/watch?v=..."></div>
+    <button id="videoFetchTitle" type="button" class="soft">從 YouTube 取得標題</button>
+    <p style="color:#78909c;font-size:13px">YouTube 完整說明無法直接從一般網頁安全取得，請在下方貼上或編輯；標題可嘗試自動取得。</p>
+    <div class="field"><label for="videoTitle">影片標題（左側）</label><input id="videoTitle" maxlength="200"></div>
+    <div class="field"><label for="videoDescription">影片說明（左側）</label><textarea id="videoDescription" rows="7" maxlength="10000" placeholder="貼上 YouTube 影片說明，可自行刪減"></textarea></div>
+    <div class="checks"><label><input id="videoPublic" type="checkbox" checked> 在首頁公開顯示</label></div>
+    <div style="display:flex;gap:10px;flex-wrap:wrap"><button id="videoSave" type="button" class="primary">儲存首頁影片</button><button id="videoHide" type="button" class="soft">取消首頁顯示</button></div>
+    <div id="videoMsg" class="msg" role="status"></div>
+  </div>
 </section>
 </main>
 </div>
@@ -775,6 +789,7 @@ document.querySelectorAll(".admin-tab").forEach(btn=>{
     window.scrollTo({top:0,behavior:"smooth"});
     if(btn.dataset.panel==="newsPanel") loadNews();
     if(btn.dataset.panel==="messagePanel") loadMessages();
+    if(btn.dataset.panel==="videoPanel") loadAdminVideo();
   });
 });
 
@@ -1384,6 +1399,63 @@ if(remain)for(let i=0;i<remain.length;i++)await db.from("products").update({sort
 await load();
 }
 
+// ===== 首頁影片管理：與 index.html 的 home_videos 表一致 =====
+let currentVideoId=null;
+function parseAdminYouTubeId(value){
+  try{
+    const u=new URL(value.trim());
+    const host=u.hostname.toLowerCase().replace(/^www\./,"");
+    let id="";
+    if(host==="youtu.be")id=u.pathname.split("/")[1];
+    else if(["youtube.com","m.youtube.com","youtube-nocookie.com"].includes(host)){
+      if(u.pathname==="/watch")id=u.searchParams.get("v");
+      else if(/^\/(shorts|embed|live)\//.test(u.pathname))id=u.pathname.split("/")[2];
+    }
+    return /^[A-Za-z0-9_-]{11}$/.test(id||"")?id:null;
+  }catch{return null}
+}
+async function loadAdminVideo(){
+  const msg=$("videoMsg");msg.textContent="讀取中…";
+  const {data,error}=await db.from("home_videos").select("id,title,description,youtube_url,is_public").order("created_at",{ascending:false}).limit(1);
+  if(error){msg.textContent="讀取失敗，請先建立 home_videos 資料表與權限："+error.message;return}
+  const v=data?.[0];currentVideoId=v?.id||null;
+  $("videoUrl").value=v?.youtube_url||"";
+  $("videoTitle").value=v?.title||"";
+  $("videoDescription").value=v?.description||"";
+  $("videoPublic").checked=v?!!v.is_public:true;
+  msg.textContent=v?"已載入目前設定":"尚未設定影片";
+}
+$("videoFetchTitle").onclick=async()=>{
+  const id=parseAdminYouTubeId($("videoUrl").value);
+  if(!id){$("videoMsg").textContent="請先輸入有效的 YouTube 影片網址";return}
+  $("videoMsg").textContent="正在取得影片標題…";
+  try{
+    const r=await fetch("https://www.youtube.com/oembed?url="+encodeURIComponent("https://www.youtube.com/watch?v="+id)+"&format=json");
+    if(!r.ok)throw new Error("YouTube 未提供此影片資訊");
+    const d=await r.json();$("videoTitle").value=d.title||"";
+    $("videoMsg").textContent="標題已取得；影片說明請自行貼上";
+  }catch(e){$("videoMsg").textContent="無法自動取得標題，請手動輸入（可能受瀏覽器跨來源限制）："+e.message}
+};
+$("videoSave").onclick=async()=>{
+  const id=parseAdminYouTubeId($("videoUrl").value);
+  if(!id){$("videoMsg").textContent="請輸入有效的 YouTube 影片網址";return}
+  const title=$("videoTitle").value.trim(),description=$("videoDescription").value.trim();
+  if(!title){$("videoMsg").textContent="請填寫影片標題";return}
+  const btn=$("videoSave");btn.disabled=true;$("videoMsg").textContent="儲存中…";
+  try{
+    const payload={youtube_url:"https://www.youtube.com/watch?v="+id,title,description,is_public:$("videoPublic").checked};
+    const {error}=currentVideoId?await db.from("home_videos").update(payload).eq("id",currentVideoId):await db.from("home_videos").insert(payload);
+    if(error)throw error;
+    await loadAdminVideo();$("videoMsg").textContent="儲存成功！首頁重新整理後會更新。";
+  }catch(e){$("videoMsg").textContent="儲存失敗："+e.message}
+  finally{btn.disabled=false}
+};
+$("videoHide").onclick=async()=>{
+  if(!currentVideoId){$("videoPublic").checked=false;$("videoMsg").textContent="目前沒有已儲存影片";return}
+  const {error}=await db.from("home_videos").update({is_public:false}).eq("id",currentVideoId);
+  if(error){$("videoMsg").textContent="更新失敗："+error.message;return}
+  $("videoPublic").checked=false;$("videoMsg").textContent="已取消首頁顯示";
+};
 boot();
 </script>
 </body>
