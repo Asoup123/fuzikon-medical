@@ -1280,6 +1280,43 @@ function storagePathFromUrl(url){
  if(i<0)return null;
  try{return decodeURIComponent(url.slice(i+marker.length))}catch{return url.slice(i+marker.length)}
 }
+// 商品縮圖：原圖保留在 products/，WebP 存在 thumbnails/。
+function productThumbnailPath(originalPath){
+ if(!originalPath || !originalPath.startsWith("products/"))return null;
+ return "thumbnails/"+originalPath.slice("products/".length).replace(/\.[^.\/]+$/, "")+".webp";
+}
+async function createProductThumbnail(file){
+ if(!file.type.startsWith("image/"))return null;
+ const bitmap=await createImageBitmap(file);
+ try{
+  const ratio=Math.min(1,600/Math.max(bitmap.width,bitmap.height));
+  const canvas=document.createElement("canvas");
+  canvas.width=Math.max(1,Math.round(bitmap.width*ratio));
+  canvas.height=Math.max(1,Math.round(bitmap.height*ratio));
+  const ctx=canvas.getContext("2d");
+  ctx.drawImage(bitmap,0,0,canvas.width,canvas.height);
+  const blob=await new Promise(resolve=>canvas.toBlob(resolve,"image/webp",0.85));
+  if(!blob || blob.type!=="image/webp")throw new Error("瀏覽器無法產生 WebP");
+  return blob;
+ }finally{bitmap.close?.()}
+}
+async function uploadProductImage(file){
+ const ext=(file.name.split(".").pop()||"jpg").toLowerCase();
+ const path="products/"+crypto.randomUUID()+"."+ext;
+ const {error}=await db.storage.from("product-images").upload(path,file,{contentType:file.type||undefined});
+ if(error)throw error;
+ const originalUrl=db.storage.from("product-images").getPublicUrl(path).data.publicUrl;
+ // 縮圖失敗不影響原圖上傳，前台會自動回退原圖。
+ try{
+  const blob=await createProductThumbnail(file);
+  const thumbnailPath=productThumbnailPath(path);
+  if(blob && thumbnailPath){
+   const {error:thumbError}=await db.storage.from("product-images").upload(thumbnailPath,blob,{contentType:"image/webp",upsert:false});
+   if(thumbError)throw thumbError;
+  }
+ }catch(err){console.warn("商品 WebP 縮圖建立失敗：",err);$("saveMsg").textContent="原圖上傳成功，但縮圖建立失敗："+err.message}
+ return originalUrl;
+}
 async function deleteStorageUrlsIfUnused(urls){
  const unique=[...new Set((urls||[]).filter(Boolean))];
  if(!unique.length)return;
@@ -1288,9 +1325,15 @@ async function deleteStorageUrlsIfUnused(urls){
  const used=new Set();
  (data||[]).forEach(p=>(p.image_urls||[]).forEach(u=>used.add(u)));
  const paths=unique.filter(u=>!used.has(u)).map(storagePathFromUrl).filter(Boolean);
+ // 同步清除對應的 WebP 縮圖（不存在的縮圖可略過）。
+ const thumbnailPaths=paths.map(productThumbnailPath).filter(Boolean);
  if(paths.length){
   const {error:e}=await db.storage.from("product-images").remove(paths);
   if(e)throw e;
+  if(thumbnailPaths.length){
+   const {error:te}=await db.storage.from("product-images").remove(thumbnailPaths);
+   if(te)console.warn("縮圖清除失敗：",te);
+  }
  }
 }
 
@@ -1310,19 +1353,24 @@ function renderImages(){
  });
 }
 async function upload(){
-for(const f of Array.from($("files").files)){
-const ext=(f.name.split(".").pop()||"jpg").toLowerCase();
-const path="products/"+crypto.randomUUID()+"."+ext;
-const {error}=await db.storage.from("product-images").upload(path,f);
-if(error) throw error;
-images.push(db.storage.from("product-images").getPublicUrl(path).data.publicUrl);imageNotes.push("");
-}
-$("files").value="";
+ for(const f of Array.from($("files").files)){
+  const url=await uploadProductImage(f);
+  images.push(url);imageNotes.push("");
+ }
+ $("files").value="";
 }
 
 $("files").addEventListener("change",async()=>{
- const input=$("files");if(!input.files?.length)return;const selected=Array.from(input.files);input.disabled=true;$("saveMsg").textContent="圖片上傳中…";
- try{for(const f of selected){const ext=(f.name.split(".").pop()||"jpg").toLowerCase();const path="products/"+crypto.randomUUID()+"."+ext;const {error}=await db.storage.from("product-images").upload(path,f);if(error)throw error;images.push(db.storage.from("product-images").getPublicUrl(path).data.publicUrl);imageNotes.push("");renderImages()}$("saveMsg").textContent="圖片已上傳，可直接拖曳調整順序"}catch(e){$("saveMsg").textContent="圖片上傳失敗："+e.message}finally{input.value="";input.disabled=false}
+ const input=$("files");if(!input.files?.length)return;
+ const selected=Array.from(input.files);input.disabled=true;$("saveMsg").textContent="圖片與 WebP 縮圖上傳中…";
+ try{
+  for(const f of selected){
+   const url=await uploadProductImage(f);
+   images.push(url);imageNotes.push("");renderImages();
+  }
+  if(!$("saveMsg").textContent.includes("失敗"))$("saveMsg").textContent="圖片已上傳（含 WebP 縮圖），可拖曳調整順序";
+ }catch(e){$("saveMsg").textContent="圖片上傳失敗："+e.message}
+ finally{input.value="";input.disabled=false}
 });
 
 async function reset(useDefaults=true){
