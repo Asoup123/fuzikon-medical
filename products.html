@@ -2248,6 +2248,19 @@ function renderProducts(products) {
         return;
     }
 
+    // 原始圖片仍保留在商品資料中；只有列表優先使用 WebP 縮圖。
+    function listThumbnailUrl(originalUrl){
+        if(!originalUrl)return originalUrl;
+        const marker="/storage/v1/object/public/product-images/products/";
+        const pos=originalUrl.indexOf(marker);
+        if(pos<0)return originalUrl;
+        const before=originalUrl.slice(0,pos);
+        const remainder=originalUrl.slice(pos+marker.length);
+        const [path,query]=remainder.split("?",2);
+        const thumbPath=path.replace(/\.[^.\/]+$/, "")+".webp";
+        return before+"/storage/v1/object/public/product-images/thumbnails/"+thumbPath+(query?"?"+query:"");
+    }
+
     products.forEach(product => {
 
         const card =
@@ -2279,7 +2292,9 @@ function renderProducts(products) {
                     ?
                     `
                     <img
-                        src="${escapeAttribute(image)}"
+                        src="${escapeAttribute(listThumbnailUrl(image))}"
+                        data-original-src="${escapeAttribute(image)}"
+                        onerror="this.onerror=null;this.src=this.dataset.originalSrc"
                         alt="${escapeAttribute(product.name)}"
                         loading="lazy"
                         decoding="async"
