@@ -486,7 +486,10 @@ main{width:92%;max-width:1280px;margin:32px auto 70px}.top{display:flex;justify-
       </div>
     </div>
 
-    <div class="checks"><label><input id="newsPublic" type="checkbox" checked> 公開顯示</label></div>
+    <div class="field"><label for="newsAttachments">附件（PDF、Word、Excel、ZIP、文字或圖片）</label>
+<input id="newsAttachments" type="file" multiple accept=".pdf,.doc,.docx,.xls,.xlsx,.zip,.txt,.csv,.png,.jpg,.jpeg,.webp">
+<p>最多 10 個附件，每個上限 20 MB。儲存消息後才會上傳。</p><div id="newsAttachmentList"></div></div>
+<div class="checks"><label><input id="newsPublic" type="checkbox" checked> 公開顯示</label></div>
     <div style="text-align:right"><button id="saveNewsBtn" class="primary">儲存消息</button></div>
     <div id="newsSaveMsg" class="msg"></div>
   </section>
@@ -878,7 +881,33 @@ $("removeNewsImageBtn").onclick=()=>{
   renderNewsImagePreview("");
 };
 
+
+let newsAttachments=[];
+function renderAttachments(){
+ const host=$('newsAttachmentList');host.replaceChildren();
+ newsAttachments.forEach((f,i)=>{
+  const row=document.createElement('div');row.style.overflowWrap='anywhere';
+  const label=document.createElement('span');label.textContent=f.name+' ';
+  const remove=document.createElement('button');remove.type='button';remove.textContent='移除';
+  remove.onclick=()=>{newsAttachments.splice(i,1);renderAttachments()};row.append(label,remove);host.append(row);
+ });
+}
+function resetAttachments(item){newsAttachments=Array.isArray(item?.attachments)?item.attachments.map(f=>({...f})):[];$('newsAttachments').value='';renderAttachments()}
+async function uploadAttachments(uploaded){
+ const files=[...$('newsAttachments').files];
+ if(newsAttachments.length+files.length>10)throw new Error('最多可附加 10 個檔案');
+ for(const f of files){if(f.size>20*1024*1024)throw new Error(f.name+' 超過 20 MB');if(!/\.(pdf|docx?|xlsx?|zip|txt|csv|png|jpe?g|webp)$/i.test(f.name))throw new Error('不支援此附件類型：'+f.name)}
+ const result=newsAttachments.map(f=>({...f}));
+ for(const f of files){
+  const path=crypto.randomUUID()+'.'+f.name.split('.').pop().toLowerCase();
+  const {error}=await db.storage.from('news-attachments').upload(path,f,{contentType:f.type||'application/octet-stream'});
+  if(error)throw error;uploaded.push(path);result.push({name:f.name,path,size:f.size});
+ }
+ return result;
+}
+
 function openNewsEditor(item=null){
+  resetAttachments(item);
   $("newsEditor").classList.remove("hidden");
   $("newsEditorTitle").textContent=item?"修改消息":"新增消息";
   $("newsId").value=item?.id||"";
@@ -892,6 +921,7 @@ function openNewsEditor(item=null){
 }
 
 function closeNewsEditor(){
+  resetAttachments(null);
   $("newsEditor").classList.add("hidden");
   $("newsId").value="";
   $("newsTitle").value="";
@@ -1021,6 +1051,8 @@ $("saveNewsBtn").onclick=async()=>{
   btn.textContent="儲存中…";
   $("newsSaveMsg").textContent="儲存中…";
 
+  const uploadedAttachmentPaths=[];
+  let newsCommitted=false;
   let uploadedNewUrl="";
   const oldUrl=originalNewsImageUrl;
 
@@ -1032,7 +1064,9 @@ $("saveNewsBtn").onclick=async()=>{
       finalImageUrl=uploadedNewUrl;
     }
 
+    const attachments=await uploadAttachments(uploadedAttachmentPaths);
     const payload={
+      attachments,
       title,
       content,
       publish_date,
@@ -1045,6 +1079,7 @@ $("saveNewsBtn").onclick=async()=>{
       : await db.from("news").insert(payload);
 
     if(result.error)throw result.error;
+    newsCommitted=true;
 
     // 資料庫成功後才清掉舊圖，避免儲存失敗造成原圖遺失
     if(oldUrl && oldUrl!==finalImageUrl){
@@ -1061,7 +1096,8 @@ $("saveNewsBtn").onclick=async()=>{
 
   }catch(e){
     // 若新圖已上傳，但資料庫儲存失敗，盡量清掉剛上傳的孤兒檔案
-    if(uploadedNewUrl){
+    if(!newsCommitted && uploadedAttachmentPaths.length){await db.storage.from("news-attachments").remove(uploadedAttachmentPaths);}
+    if(!newsCommitted && uploadedNewUrl){
       try{await removeNewsStorageUrl(uploadedNewUrl)}catch(_){}
     }
     $("newsSaveMsg").textContent="儲存失敗："+e.message;

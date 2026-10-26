@@ -12,7 +12,7 @@ body{
   font-family:"Microsoft JhengHei","Noto Sans TC",Arial,sans-serif;
   color:#333;
   line-height:1.7;
-  overflow-x:hidden;
+  overflow-x:clip;
   min-height:100vh;
   background:
     radial-gradient(circle at 88% 12%,rgba(7,151,211,.18) 0,rgba(7,151,211,.07) 20%,transparent 40%),
@@ -242,6 +242,22 @@ header.site-header{
   .site-header .logo{font-size:16px;gap:9px}
   .site-header .logo img{height:42px}
 }
+
+/* 點開消息閱讀完整圖片及內文 */
+.news-card{cursor:pointer}
+.news-open,.news-close{font:inherit;cursor:pointer;border:0;border-radius:8px;padding:10px 18px;background:#0797d3;color:#fff;font-weight:700}
+.news-open{margin-top:18px}
+.news-open:focus-visible,.news-close:focus-visible{outline:3px solid #17465c;outline-offset:3px}
+.news-dialog{margin:auto;width:min(1100px,94vw);max-height:90vh;max-height:90dvh;padding:0;border:1px solid #c9e0e9;border-radius:16px;background:#fff;color:#536b76;overflow:auto;overscroll-behavior:contain}
+.news-dialog::backdrop{background:rgba(9,36,50,.72)}
+.news-dialog-bar{position:sticky;top:0;display:flex;justify-content:flex-end;padding:12px 18px;background:#fff;border-bottom:1px solid #edf2f4;z-index:1}
+.news-detail{padding:24px clamp(18px,4vw,44px) 36px}
+.news-detail h2{color:#17465c;font-size:clamp(22px,4vw,30px);overflow-wrap:anywhere;margin-bottom:18px}
+.news-detail-image{display:block;width:100%;height:auto;max-height:none;object-fit:contain;margin:0 auto 12px}
+.news-original{display:inline-block;color:#087eae;text-decoration:underline;margin-bottom:22px}
+.news-detail-content{white-space:pre-wrap;overflow-wrap:anywhere;line-height:1.9}
+html.news-reading{overflow:hidden}
+
 </style>
 
 
@@ -273,6 +289,18 @@ header.site-header{
   </section>
 </main>
 
+<dialog id="newsDialog" class="news-dialog" aria-labelledby="newsDetailTitle">
+  <div class="news-dialog-bar"><button type="button" class="news-close" id="newsClose" autofocus>關閉 ×</button></div>
+  <article class="news-detail">
+    <div id="newsDetailDate" class="news-date"></div>
+    <h2 id="newsDetailTitle"></h2>
+    <img id="newsDetailImage" class="news-detail-image" alt="" hidden>
+    <a id="newsOriginal" class="news-original" target="_blank" rel="noopener noreferrer" hidden>開啟原始大圖 ↗</a>
+    <div id="newsDetailAttachments" style="display:grid;gap:10px;margin:18px 0;overflow-wrap:anywhere"></div>
+    <div id="newsDetailContent" class="news-detail-content"></div>
+  </article>
+</dialog>
+
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script>
 const db=supabase.createClient(
@@ -296,11 +324,13 @@ const fmt=v=>{
     :d.toLocaleDateString("zh-TW",{year:"numeric",month:"2-digit",day:"2-digit"});
 };
 
+let newsItems=[];
+
 async function loadNews(){
   const host=document.getElementById("newsList");
 
   const {data,error}=await db.from("news")
-    .select("id,title,content,publish_date,image_url")
+    .select("id,title,content,publish_date,image_url,attachments")
     .eq("is_public",true)
     .order("publish_date",{ascending:false})
     .order("created_at",{ascending:false});
@@ -315,8 +345,9 @@ async function loadNews(){
     return;
   }
 
-  host.innerHTML=data.map(n=>`
-    <article class="news-card ${n.image_url?"has-image":""}">
+  newsItems=data;
+  host.innerHTML=data.map((n,index)=>`
+    <article class="news-card ${n.image_url?"has-image":""}" data-news-index="${index}">
       ${n.image_url
         ?`<div class="news-image"><img src="${esc(n.image_url)}" alt="${esc(n.title)}" loading="lazy"></div>`
         :""
@@ -325,10 +356,62 @@ async function loadNews(){
         <div class="news-date">${fmt(n.publish_date)}</div>
         <h2>${esc(n.title)}</h2>
         <div class="news-content">${esc(n.content)}</div>
+        <button type="button" class="news-open" aria-haspopup="dialog" aria-controls="newsDialog" aria-label="${esc('閱讀全文：'+n.title)}">查看大圖與全文</button>
       </div>
     </article>
   `).join("");
 }
+
+
+const newsDialog=document.getElementById('newsDialog');
+let newsTrigger=null;
+document.getElementById('newsList').addEventListener('click',event=>{
+  const card=event.target.closest('[data-news-index]');
+  if(!card)return;
+  const item=newsItems[Number(card.dataset.newsIndex)];
+  if(!item)return;
+  newsTrigger=card.querySelector('.news-open');
+  document.getElementById('newsDetailTitle').textContent=item.title||'';
+  document.getElementById('newsDetailDate').textContent=fmt(item.publish_date);
+  document.getElementById('newsDetailContent').textContent=item.content||'';
+  const img=document.getElementById('newsDetailImage');
+  const original=document.getElementById('newsOriginal');
+  let imageUrl='';
+  try{const url=new URL(item.image_url,location.href);if(item.image_url&&['https:','http:'].includes(url.protocol))imageUrl=url.href;}catch{}
+  img.hidden=!imageUrl;
+  original.hidden=!imageUrl;
+  if(imageUrl){img.src=imageUrl;img.alt=item.title||'消息圖片';original.href=imageUrl;}
+  else{img.removeAttribute('src');original.removeAttribute('href');}
+  const attachmentHost=document.getElementById('newsDetailAttachments');attachmentHost.replaceChildren();
+  if(Array.isArray(item.attachments))item.attachments.forEach(file=>{
+    if(!file.path)return;
+    const button=document.createElement('button');button.type='button';button.className='news-open';
+    button.textContent='下載附件：'+(file.name||'附件');
+    button.onclick=async()=>{
+      button.disabled=true;button.textContent='正在取得下載連結…';
+      try{
+        const {data,error}=await db.storage.from('news-attachments').createSignedUrl(file.path,60,{download:file.name||true});
+        if(error)throw error;
+        const link=document.createElement('a');link.href=data.signedUrl;link.download=file.name||'';link.target='_blank';link.rel='noopener';link.click();
+      }catch(e){alert('附件目前無法下載，請稍後再試。');}
+      finally{button.disabled=false;button.textContent='下載附件：'+(file.name||'附件');}
+    };
+    attachmentHost.append(button);
+  });
+  newsDialog.showModal();
+  newsDialog.scrollTop=0;
+  document.documentElement.classList.add('news-reading');
+});
+document.getElementById('newsClose').addEventListener('click',()=>newsDialog.close());
+newsDialog.addEventListener('click',event=>{
+  if(event.target!==newsDialog)return;
+  const rect=newsDialog.getBoundingClientRect();
+  if(event.clientX<rect.left||event.clientX>rect.right||event.clientY<rect.top||event.clientY>rect.bottom)newsDialog.close();
+});
+newsDialog.addEventListener('close',()=>{
+  document.documentElement.classList.remove('news-reading');
+  newsTrigger?.focus({preventScroll:true});
+});
 
 loadNews();
 </script>
