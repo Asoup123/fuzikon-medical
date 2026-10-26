@@ -245,6 +245,7 @@ header.site-header{
 
 /* 點開消息閱讀完整圖片及內文 */
 .news-card{cursor:pointer}
+.news-card:focus-visible{outline:3px solid #0797d3;outline-offset:4px}
 .news-open,.news-close{font:inherit;cursor:pointer;border:0;border-radius:8px;padding:10px 18px;background:#0797d3;color:#fff;font-weight:700}
 .news-open{margin-top:18px}
 .news-open:focus-visible,.news-close:focus-visible{outline:3px solid #17465c;outline-offset:3px}
@@ -254,7 +255,6 @@ header.site-header{
 .news-detail{padding:24px clamp(18px,4vw,44px) 36px}
 .news-detail h2{color:#17465c;font-size:clamp(22px,4vw,30px);overflow-wrap:anywhere;margin-bottom:18px}
 .news-detail-image{display:block;width:100%;height:auto;max-height:none;object-fit:contain;margin:0 auto 12px}
-.news-original{display:inline-block;color:#087eae;text-decoration:underline;margin-bottom:22px}
 .news-detail-content{white-space:pre-wrap;overflow-wrap:anywhere;line-height:1.9}
 html.news-reading{overflow:hidden}
 
@@ -295,7 +295,6 @@ html.news-reading{overflow:hidden}
     <div id="newsDetailDate" class="news-date"></div>
     <h2 id="newsDetailTitle"></h2>
     <img id="newsDetailImage" class="news-detail-image" alt="" hidden>
-    <a id="newsOriginal" class="news-original" target="_blank" rel="noopener noreferrer" hidden>開啟原始大圖 ↗</a>
     <div id="newsDetailAttachments" style="display:grid;gap:10px;margin:18px 0;overflow-wrap:anywhere"></div>
     <div id="newsDetailContent" class="news-detail-content"></div>
   </article>
@@ -347,7 +346,7 @@ async function loadNews(){
 
   newsItems=data;
   host.innerHTML=data.map((n,index)=>`
-    <article class="news-card ${n.image_url?"has-image":""}" data-news-index="${index}">
+    <article class="news-card ${n.image_url?"has-image":""}" data-news-index="${index}" role="button" tabindex="0" aria-haspopup="dialog" aria-controls="newsDialog" aria-label="${esc('閱讀全文：'+n.title)}">
       ${n.image_url
         ?`<div class="news-image"><img src="${esc(n.image_url)}" alt="${esc(n.title)}" loading="lazy"></div>`
         :""
@@ -356,13 +355,17 @@ async function loadNews(){
         <div class="news-date">${fmt(n.publish_date)}</div>
         <h2>${esc(n.title)}</h2>
         <div class="news-content">${esc(n.content)}</div>
-        <button type="button" class="news-open" aria-haspopup="dialog" aria-controls="newsDialog" aria-label="${esc('閱讀全文：'+n.title)}">查看大圖與全文</button>
       </div>
     </article>
   `).join("");
 }
 
 
+document.getElementById('newsList').addEventListener('keydown',event=>{
+  if((event.key==='Enter'||event.key===' ')&&event.target.matches('[data-news-index]')){
+    event.preventDefault();event.target.click();
+  }
+});
 const newsDialog=document.getElementById('newsDialog');
 let newsTrigger=null;
 document.getElementById('newsList').addEventListener('click',event=>{
@@ -370,18 +373,16 @@ document.getElementById('newsList').addEventListener('click',event=>{
   if(!card)return;
   const item=newsItems[Number(card.dataset.newsIndex)];
   if(!item)return;
-  newsTrigger=card.querySelector('.news-open');
+  newsTrigger=card;
   document.getElementById('newsDetailTitle').textContent=item.title||'';
   document.getElementById('newsDetailDate').textContent=fmt(item.publish_date);
   document.getElementById('newsDetailContent').textContent=item.content||'';
   const img=document.getElementById('newsDetailImage');
-  const original=document.getElementById('newsOriginal');
   let imageUrl='';
   try{const url=new URL(item.image_url,location.href);if(item.image_url&&['https:','http:'].includes(url.protocol))imageUrl=url.href;}catch{}
   img.hidden=!imageUrl;
-  original.hidden=!imageUrl;
-  if(imageUrl){img.src=imageUrl;img.alt=item.title||'消息圖片';original.href=imageUrl;}
-  else{img.removeAttribute('src');original.removeAttribute('href');}
+  if(imageUrl){img.src=imageUrl;img.alt=item.title||'消息圖片';}
+  else{img.removeAttribute('src');}
   const attachmentHost=document.getElementById('newsDetailAttachments');attachmentHost.replaceChildren();
   if(Array.isArray(item.attachments))item.attachments.forEach(file=>{
     if(!file.path)return;
