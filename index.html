@@ -1278,7 +1278,6 @@ html.news-reading{overflow:hidden}
 .category-card:hover,.category-card:focus-visible{border-color:#8bcde8;transform:translateY(-4px)}
 #homeNewsList .news-card{transition:transform .25s ease,border-color .25s ease,box-shadow .25s ease}
 #homeNewsList .news-card:hover{transform:translateY(-3px);border-color:#8bcde8;box-shadow:0 12px 26px rgba(22,76,101,.09)}
-#home-read-progress{position:fixed;top:0;left:0;width:100%;height:3px;background:#0797d3;transform:scaleX(0);transform-origin:left;z-index:6000;pointer-events:none}
 #home-back-top{position:fixed;right:22px;bottom:24px;width:44px;height:44px;border:1px solid #b7ddeb;border-radius:50%;background:rgba(255,255,255,.96);color:#087ead;box-shadow:0 4px 18px rgba(22,76,101,.13);font-size:23px;cursor:pointer;z-index:4900}
 #home-back-top[hidden]{display:none}
 #home-back-top:hover{background:#edf8fc}
@@ -1840,18 +1839,15 @@ document.addEventListener("DOMContentLoaded",function(){
 
 
 
-<div id="home-read-progress" aria-hidden="true"></div>
+
 <button id="home-back-top" type="button" aria-label="回到頂端" title="回到頂端" hidden>↑</button>
 <script id="home-interactions-script">
 (()=>{
  const reduced=window.matchMedia('(prefers-reduced-motion: reduce)');
- const progress=document.getElementById('home-read-progress');
  const back=document.getElementById('home-back-top');
  let queued=false;
  function updateScroll(){
   queued=false;
-  const range=document.documentElement.scrollHeight-window.innerHeight;
-  progress.style.transform='scaleX('+Math.max(0,Math.min(1,range>0?window.scrollY/range:0))+')';
   back.hidden=window.scrollY<Math.max(300,window.innerHeight*.65);
  }
  function scheduleScroll(){if(!queued){queued=true;requestAnimationFrame(updateScroll)}}
