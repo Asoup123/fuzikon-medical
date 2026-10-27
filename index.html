@@ -1325,6 +1325,19 @@ html.news-reading{overflow:hidden}
 @media(max-width:600px){#featuredProducts{margin-top:22px}.featured-card{grid-template-columns:1fr;gap:14px;padding:18px}.featured-photo{height:230px}.featured-copy{padding:0}.featured-name{font-size:22px;margin-bottom:10px}.featured-description{font-size:15px}.featured-controls{gap:6px}}
 @media(prefers-reduced-motion:reduce){.featured-card{transition:none}}
 </style>
+
+<style id="featured-loop-style">
+.featured-wrap{position:relative;padding:0 24px}
+.featured-track{padding:2px;scroll-snap-type:none;overflow-x:hidden;touch-action:pan-y}
+.featured-arrow{position:absolute;top:50%;translate:0 -50%;width:38px;height:48px;padding:0;border:1px solid #b8d9e9;border-radius:24px;background:#fff;color:#0797d3;font:32px/1 Arial,sans-serif;cursor:pointer;z-index:2;box-shadow:0 3px 12px rgba(22,76,101,.10)}
+.featured-prev{left:5px}.featured-next{right:5px}
+.featured-arrow:hover{background:#edf8fd;border-color:#0797d3}
+.featured-arrow:focus-visible{outline:3px solid #0797d3;outline-offset:2px}
+.featured-arrow[hidden]{display:none}
+.featured-wrap:hover .featured-card,.featured-wrap:focus-within .featured-card{border-color:#0797d3;box-shadow:inset 0 0 0 1px #0797d3}
+@media(max-width:600px){.featured-wrap{padding:0 17px}.featured-arrow{width:32px;height:42px}.featured-prev{left:0}.featured-next{right:0}}
+</style>
+
 </head>
 
 <body>
@@ -1366,12 +1379,9 @@ html.news-reading{overflow:hidden}
         </div>
 <div id="featuredProducts" hidden aria-label="精選商品輪播" aria-roledescription="輪播">
  <div class="featured-wrap">
-  <div class="featured-head"><div class="featured-controls">
-   <button id="featuredPrev" type="button" aria-label="上一個商品">上一個</button>
-   <button id="featuredPlay" type="button">暫停</button>
-   <button id="featuredNext" type="button" aria-label="下一個商品">下一個</button>
-  </div></div>
+  <button id="featuredPrev" class="featured-arrow featured-prev" type="button" aria-label="上一個商品">‹</button>
   <div class="featured-track" id="featuredTrack"></div>
+  <button id="featuredNext" class="featured-arrow featured-next" type="button" aria-label="下一個商品">›</button>
  </div>
 </div>
     </div>
@@ -1900,9 +1910,8 @@ document.addEventListener("DOMContentLoaded",function(){
 (async()=>{
  const section=document.getElementById('featuredProducts');
  const track=document.getElementById('featuredTrack');
- const play=document.getElementById('featuredPlay');
  const reduced=window.matchMedia('(prefers-reduced-motion: reduce)');
- let auto=!reduced.matches,hover=false,timer=null;
+ let hover=false,timer=null;
  try{
   const {data,error}=await publicDb.from('products').select('id,name,description,image_urls,sort_order').eq('is_active',true).eq('is_featured',true).order('sort_order',{ascending:true}).order('created_at',{ascending:true});
   if(error)throw error;if(!data?.length)return;
@@ -1914,31 +1923,45 @@ document.addEventListener("DOMContentLoaded",function(){
    const name=document.createElement('div');name.className='featured-name';name.textContent=item.name||'商品';const copy=document.createElement('div');copy.className='featured-copy';const description=document.createElement('div');description.className='featured-description';description.textContent=item.description||'';copy.append(name,description);card.append(photo,copy);track.append(card);
   });
   section.hidden=false;
-  function hasOverflow(){return track.scrollWidth>track.clientWidth+3}
-  function move(direction){
-   const max=track.scrollWidth-track.clientWidth;
-   let target=track.scrollLeft+direction*(track.firstElementChild.getBoundingClientRect().width+18);
-   if(direction>0&&track.scrollLeft>=max-3)target=0;
-   if(direction<0&&track.scrollLeft<=3)target=max;
-   track.scrollTo({left:Math.max(0,Math.min(max,target)),behavior:reduced.matches?'instant':'smooth'});
+  const cards=[...track.children],count=cards.length;
+  const prev=document.getElementById('featuredPrev'),next=document.getElementById('featuredNext');
+  prev.hidden=next.hidden=count<2;
+  let position=count>1?1:0,busy=false,finishTimer=null;
+  if(count>1){
+   const first=cards[0].cloneNode(true),last=cards[count-1].cloneNode(true);
+   [first,last].forEach(el=>{el.setAttribute('aria-hidden','true');el.tabIndex=-1;el.inert=true});
+   track.prepend(last);track.append(first);
   }
+  const step=()=>track.firstElementChild.getBoundingClientRect().width+18;
+  function jump(){track.scrollTo({left:position*step(),behavior:'instant'})}
+  function finish(){
+   if(!busy)return;clearTimeout(finishTimer);
+   if(position===count+1){position=1;jump()}
+   else if(position===0){position=count;jump()}
+   busy=false;
+  }
+  function move(direction){
+   if(count<2||busy)return;busy=true;position+=direction;
+   track.scrollTo({left:position*step(),behavior:reduced.matches?'instant':'smooth'});
+   finishTimer=setTimeout(finish,reduced.matches?0:750);
+  }
+  track.addEventListener('scrollend',finish);
   function sync(){
    clearInterval(timer);timer=null;
-   play.textContent=auto?'暫停':'播放';
-   const overflow=hasOverflow();
-   document.querySelector('.featured-controls').hidden=!overflow;
-   if(auto&&overflow&&!hover&&!document.hidden&&!section.contains(document.activeElement))timer=setInterval(()=>move(1),6000);
+   if(count>1&&!hover&&!reduced.matches&&!document.hidden&&!section.contains(document.activeElement))timer=setInterval(()=>move(1),3500);
   }
-  function manual(direction){auto=false;move(direction);sync()}
-  document.getElementById('featuredPrev').onclick=()=>manual(-1);
-  document.getElementById('featuredNext').onclick=()=>manual(1);
-  play.onclick=()=>{auto=!auto;sync()};
+  prev.onclick=()=>move(-1);next.onclick=()=>move(1);
   section.addEventListener('mouseenter',()=>{hover=true;sync()});section.addEventListener('mouseleave',()=>{hover=false;sync()});
   section.addEventListener('focusin',sync);section.addEventListener('focusout',()=>requestAnimationFrame(sync));
-  track.addEventListener('pointerdown',()=>{auto=false;sync()},{passive:true});
-  track.addEventListener('keydown',event=>{if(event.key==='ArrowRight'||event.key==='ArrowLeft'){event.preventDefault();manual(event.key==='ArrowRight'?1:-1)}});
-  document.addEventListener('visibilitychange',sync);window.addEventListener('resize',sync);
-  reduced.addEventListener?.('change',()=>{auto=false;sync()});sync();
+  let startX=0,startY=0;
+  track.addEventListener('touchstart',e=>{startX=e.touches[0].clientX;startY=e.touches[0].clientY;hover=true;sync()},{passive:true});
+  track.addEventListener('touchend',e=>{const dx=e.changedTouches[0].clientX-startX,dy=e.changedTouches[0].clientY-startY;if(Math.abs(dx)>45&&Math.abs(dx)>Math.abs(dy))move(dx<0?1:-1);hover=false;sync()},{passive:true});
+  track.addEventListener('touchcancel',()=>{hover=false;sync()},{passive:true});
+  track.addEventListener('keydown',e=>{if(e.key==='ArrowRight'||e.key==='ArrowLeft'){e.preventDefault();move(e.key==='ArrowRight'?1:-1)}});
+  document.addEventListener('visibilitychange',sync);
+  window.addEventListener('resize',()=>{clearTimeout(finishTimer);busy=false;if(position===count+1)position=1;if(position===0&&count>1)position=count;jump();sync()});
+  reduced.addEventListener?.('change',sync);
+  requestAnimationFrame(()=>{jump();sync()});
  }catch(error){console.info('精選商品未顯示：',error.message)}
 })();
 </script>
