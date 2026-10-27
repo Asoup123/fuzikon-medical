@@ -1240,6 +1240,28 @@ html.news-reading{overflow:hidden}
 .news-detail-image[hidden]{display:none}
 
 </style>
+
+<style id="compact-home-spacing">
+/* 首頁留白：保留閱讀空間，讓相鄰區塊更連貫 */
+.about{padding-top:38px;padding-bottom:38px}
+.about-heading{margin-bottom:20px}
+.about .about-text p{margin-bottom:12px}
+.about .about-text p:last-child{margin-bottom:0}
+.categories,.news-section,.guestbook-section,.home-video-section,.contact{padding-top:44px;padding-bottom:44px}
+.section-title{margin-bottom:26px}
+.news-list,.home-message-list{margin-top:22px}
+.category-grid{gap:16px}
+.more-news,.more-messages{margin-top:16px}
+@media(max-width:700px){
+ .about{padding-top:28px;padding-bottom:28px}
+ .about-heading{margin-bottom:16px}
+ .categories,.news-section,.guestbook-section,.home-video-section,.contact{padding-top:32px;padding-bottom:32px}
+ .section-title{margin-bottom:22px}
+ .news-list,.home-message-list{margin-top:18px}
+ .category-grid{gap:12px}
+}
+</style>
+
 </head>
 
 <body>
