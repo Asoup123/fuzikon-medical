@@ -1379,6 +1379,69 @@ window.addEventListener('hashchange',()=>{if(location.hash==='#contact')location
 #featuredTrack .featured-card{flex:0 0 100%;min-width:0}
 #featuredTrack img{display:block}
 </style>
+<style id="home-video-background">
+#homeVideoSection{background:#fff;border-top:1px solid #d9e8f0}
+</style>
+
+
+<style id="home-alternating-circle-backgrounds">
+/* 依關於富致康與最新消息參考圖，使用同一藍色系的兩種深淺。 */
+#about,#categories,#news,#guestbook,#homeVideoSection{
+ background:
+  radial-gradient(circle at -2% 10%,transparent 0 155px,rgba(7,151,211,.10) 156px 192px,transparent 193px),
+  radial-gradient(circle at 94% 100%,rgba(7,151,211,.10) 0 210px,transparent 211px),
+  radial-gradient(circle at 104% -8%,transparent 0 230px,rgba(7,151,211,.18) 231px 232px,transparent 233px),
+  linear-gradient(120deg,var(--home-bg-start),var(--home-bg-end)) !important;
+ border-top:0;
+ border-bottom:1px solid rgba(255,255,255,.7);
+}
+#about,#news,#homeVideoSection{--home-bg-start:#d9eef7;--home-bg-end:#e7f5fb}
+#categories,#guestbook{--home-bg-start:#e7f4f9;--home-bg-end:#f4fbfd}
+#about::before,#about::after{display:none !important}
+@media(max-width:700px){
+ #about,#categories,#news,#guestbook,#homeVideoSection{
+  background:
+   radial-gradient(circle at -15% 8%,transparent 0 86px,rgba(7,151,211,.09) 87px 111px,transparent 112px),
+   radial-gradient(circle at 112% 95%,rgba(7,151,211,.10) 0 150px,transparent 151px),
+   linear-gradient(120deg,var(--home-bg-start),var(--home-bg-end)) !important;
+ }
+}
+</style>
+
+
+<style id="home-circle-variations">
+/* 同一藍色語彙，不同區塊的圓形構圖 */
+#about{background:
+ radial-gradient(circle at -3% 14%,transparent 0 145px,rgba(7,151,211,.12) 146px 188px,transparent 189px),
+ radial-gradient(circle at 102% 100%,rgba(7,151,211,.10) 0 205px,transparent 206px),
+ linear-gradient(120deg,var(--home-bg-start),var(--home-bg-end)) !important}
+#categories{background:
+ radial-gradient(circle at 102% 3%,transparent 0 120px,rgba(7,151,211,.13) 121px 122px,transparent 123px 155px,rgba(7,151,211,.08) 156px 176px,transparent 177px),
+ radial-gradient(circle at 3% 100%,rgba(7,151,211,.06) 0 92px,transparent 93px),
+ linear-gradient(120deg,var(--home-bg-start),var(--home-bg-end)) !important}
+#news{background:
+ radial-gradient(circle at 96% -10%,rgba(7,151,211,.10) 0 176px,transparent 177px),
+ radial-gradient(circle at 84% -25%,transparent 0 155px,rgba(7,151,211,.17) 156px 157px,transparent 158px),
+ linear-gradient(120deg,var(--home-bg-start),var(--home-bg-end)) !important}
+#guestbook{background:
+ radial-gradient(circle at -3% 100%,rgba(7,151,211,.08) 0 155px,transparent 156px),
+ radial-gradient(circle at 5% 112%,transparent 0 175px,rgba(7,151,211,.14) 176px 177px,transparent 178px),
+ radial-gradient(circle at 97% 15%,rgba(7,151,211,.06) 0 48px,transparent 49px),
+ linear-gradient(120deg,var(--home-bg-start),var(--home-bg-end)) !important}
+#homeVideoSection{background:
+ radial-gradient(circle at 104% 58%,transparent 0 192px,rgba(7,151,211,.10) 193px 226px,transparent 227px),
+ radial-gradient(circle at 0% -15%,transparent 0 125px,rgba(7,151,211,.13) 126px 127px,transparent 128px),
+ linear-gradient(120deg,var(--home-bg-start),var(--home-bg-end)) !important}
+@media(max-width:700px){
+ #about,#categories,#news,#guestbook,#homeVideoSection{background-size:70% 70%,70% 70%,100% 100% !important;background-repeat:no-repeat !important}
+ #about{background-position:left top,right bottom,center !important}
+ #categories{background-position:right top,left bottom,center !important}
+ #news{background-position:right top,right top,center !important}
+ #guestbook{background-position:left bottom,left bottom,right top,center !important;background-size:70% 70%,70% 70%,100% 100%,100% 100% !important}
+ #homeVideoSection{background-position:right center,left top,center !important}
+}
+</style>
+
 </head>
 
 <body>
