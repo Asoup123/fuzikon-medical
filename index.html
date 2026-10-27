@@ -1262,6 +1262,48 @@ html.news-reading{overflow:hidden}
 }
 </style>
 
+
+<style id="home-interactions">
+.home-reveal{opacity:1}
+.home-reveal.is-waiting{opacity:0;translate:0 18px}
+.home-reveal.is-revealed{animation:home-arrive .65s cubic-bezier(.22,1,.36,1) both;animation-delay:var(--reveal-delay,0ms)}
+@keyframes home-arrive{from{opacity:0;translate:0 18px}to{opacity:1;translate:0 0}}
+.section-title h2::after,.about-heading h2::after{
+ content:"";display:block;width:44px;height:3px;margin:12px auto 0;border-radius:3px;background:#0797d3;transform:scaleX(1);
+}
+.is-waiting h2::after{transform:scaleX(0)}
+.is-revealed h2::after{animation:home-line .65s .15s both}
+@keyframes home-line{from{transform:scaleX(0)}to{transform:scaleX(1)}}
+.category-card{transition:transform .25s ease,border-color .25s ease,box-shadow .25s ease}
+.category-card:hover,.category-card:focus-visible{border-color:#8bcde8;transform:translateY(-4px)}
+#homeNewsList .news-card{transition:transform .25s ease,border-color .25s ease,box-shadow .25s ease}
+#homeNewsList .news-card:hover{transform:translateY(-3px);border-color:#8bcde8;box-shadow:0 12px 26px rgba(22,76,101,.09)}
+#home-read-progress{position:fixed;top:0;left:0;width:100%;height:3px;background:#0797d3;transform:scaleX(0);transform-origin:left;z-index:6000;pointer-events:none}
+#home-back-top{position:fixed;right:22px;bottom:24px;width:44px;height:44px;border:1px solid #b7ddeb;border-radius:50%;background:rgba(255,255,255,.96);color:#087ead;box-shadow:0 4px 18px rgba(22,76,101,.13);font-size:23px;cursor:pointer;z-index:4900}
+#home-back-top[hidden]{display:none}
+#home-back-top:hover{background:#edf8fc}
+#home-back-top:focus-visible{outline:3px solid #0797d3;outline-offset:3px}
+@media(max-width:600px){#home-back-top{right:14px;bottom:18px;width:40px;height:40px}}
+@media(prefers-reduced-motion:reduce){
+ html{scroll-behavior:auto}
+ .home-reveal.is-waiting,.home-reveal.is-revealed{opacity:1;translate:none;animation:none}
+ .is-revealed h2::after,.is-waiting h2::after{animation:none;transform:none}
+ .category-card,#homeNewsList .news-card{transition:none}
+ .category-card:hover,#homeNewsList .news-card:hover{transform:none}
+}
+</style>
+
+
+<style id="home-social-buttons">
+#home-social{position:fixed;right:22px;bottom:80px;display:flex;flex-direction:column;gap:10px;z-index:4900}
+.home-social-circle{display:flex;align-items:center;justify-content:center;width:44px;height:44px;border-radius:50%;border:1px solid #d4e5ed;background:#fff;box-shadow:0 4px 18px rgba(22,76,101,.13);cursor:pointer;transition:box-shadow .2s ease;font:inherit}
+.home-social-circle:hover{box-shadow:0 6px 22px rgba(22,76,101,.22)}
+.home-social-circle:focus-visible{outline:3px solid #0797d3;outline-offset:3px}
+#line-contact-toggle{cursor:default}
+.home-social-circle svg{width:25px;height:25px}
+@media(max-width:600px){#home-social{right:14px;bottom:68px}.home-social-circle{width:40px;height:40px}}
+</style>
+
 </head>
 
 <body>
@@ -1751,6 +1793,74 @@ document.addEventListener("DOMContentLoaded",function(){
 </script>
 
 
+
+
+
+<div id="home-read-progress" aria-hidden="true"></div>
+<button id="home-back-top" type="button" aria-label="回到頂端" title="回到頂端" hidden>↑</button>
+<script id="home-interactions-script">
+(()=>{
+ const reduced=window.matchMedia('(prefers-reduced-motion: reduce)');
+ const progress=document.getElementById('home-read-progress');
+ const back=document.getElementById('home-back-top');
+ let queued=false;
+ function updateScroll(){
+  queued=false;
+  const range=document.documentElement.scrollHeight-window.innerHeight;
+  progress.style.transform='scaleX('+Math.max(0,Math.min(1,range>0?window.scrollY/range:0))+')';
+  back.hidden=window.scrollY<Math.max(300,window.innerHeight*.65);
+ }
+ function scheduleScroll(){if(!queued){queued=true;requestAnimationFrame(updateScroll)}}
+ window.addEventListener('scroll',scheduleScroll,{passive:true});
+ window.addEventListener('resize',scheduleScroll);
+ if('ResizeObserver' in window)new ResizeObserver(scheduleScroll).observe(document.body);
+ back.addEventListener('click',()=>{
+  window.scrollTo({top:0,behavior:reduced.matches?'instant':'smooth'});
+  document.querySelector('header .logo')?.focus({preventScroll:true});
+ });
+ updateScroll();
+ if(!('IntersectionObserver' in window)||reduced.matches)return;
+ const seen=new WeakSet();
+ const observer=new IntersectionObserver(entries=>{
+  entries.forEach(entry=>{
+   if(!entry.isIntersecting)return;
+   entry.target.classList.remove('is-waiting');
+   entry.target.classList.add('is-revealed');
+   observer.unobserve(entry.target);
+  });
+ },{threshold:.08,rootMargin:'0px 0px -24px 0px'});
+ const selector='.about-heading,.section-title,.category-card,#homeNewsList .news-card,#homeMessageList .message-card,.contact-info,.map-box,.home-video-copy,.home-video-frame';
+ function register(){
+  document.querySelectorAll(selector).forEach(el=>{
+   if(seen.has(el))return;seen.add(el);
+   const siblings=[...el.parentElement.children].filter(n=>n.matches(selector));
+   const delay=Math.min(Math.max(0,siblings.indexOf(el))%5*75,300);
+   el.style.setProperty('--reveal-delay',delay+'ms');
+   el.classList.add('home-reveal','is-waiting');observer.observe(el);
+   // 鍵盤移入時立即顯示，避免焦點落在尚未出現的卡片。
+   el.addEventListener('focusin',()=>{el.classList.remove('is-waiting','is-revealed');observer.unobserve(el)});
+  });
+ }
+ register();
+ const mutation=new MutationObserver(register);
+ ['homeNewsList','homeMessageList','homeVideoSection'].forEach(id=>{
+  const host=document.getElementById(id);if(host)mutation.observe(host,{childList:true,subtree:true});
+ });
+ reduced.addEventListener?.('change',event=>{
+  if(event.matches){observer.disconnect();mutation.disconnect();document.querySelectorAll('.home-reveal').forEach(el=>el.classList.remove('is-waiting','is-revealed'))}
+ });
+})();
+</script>
+
+
+<div id="home-social" aria-label="社群聯絡">
+ <a class="home-social-circle" href="https://www.youtube.com/@fzk-fuzikon" target="_blank" rel="noopener noreferrer" aria-label="富致康 YouTube 頻道（另開視窗）" title="YouTube">
+  <svg viewBox="0 0 28 28" aria-hidden="true"><rect x="2" y="5" width="24" height="18" rx="6" fill="#f03"/><path d="M12 10l7 4-7 4z" fill="white"/></svg>
+ </a>
+ <button class="home-social-circle" id="line-contact-toggle" type="button" aria-label="LINE（連結尚未設定）" aria-disabled="true" title="LINE">
+  <svg viewBox="0 0 28 28" aria-hidden="true"><path fill="#06c755" d="M14 2C6.8 2 2 6.4 2 11.7c0 4.8 4.1 8.7 9.7 9.5.5.1.7.4.6.9l-.4 2.4c-.1.6.3.8.8.5C20 21 26 16.4 26 11.7 26 6.4 21.2 2 14 2z"/><text x="14" y="14.5" text-anchor="middle" font-family="Arial,sans-serif" font-size="7.8" font-weight="bold" fill="white">LINE</text></svg>
+ </button>
+</div>
 
 
 </body>
