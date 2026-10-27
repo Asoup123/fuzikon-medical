@@ -12,3 +12,26 @@
  document.addEventListener('click',e=>{if(!header.contains(e.target))close()});
  window.matchMedia('(min-width:768px)').addEventListener('change',close);
 })();
+(()=>{
+ const categories=document.querySelector('.product-sidebar .category-buttons');
+ if(!categories)return;
+ const bar=document.createElement('div');bar.className='fzk-category-scroll-indicator';bar.setAttribute('aria-hidden','true');
+ const thumb=document.createElement('span');thumb.className='fzk-category-scroll-thumb';bar.append(thumb);categories.after(bar);
+ let queued=false;
+ function update(){
+  queued=false;
+  const max=categories.scrollWidth-categories.clientWidth;
+  bar.hidden=max<=2;
+  if(max<=2)return;
+  const width=bar.clientWidth;
+  const thumbWidth=Math.min(width,Math.max(28,width*categories.clientWidth/categories.scrollWidth));
+  thumb.style.width=thumbWidth+'px';
+  const progress=Math.max(0,Math.min(1,categories.scrollLeft/max));
+  thumb.style.transform='translateX('+((width-thumbWidth)*progress)+'px)';
+ }
+ function schedule(){if(!queued){queued=true;requestAnimationFrame(update)}}
+ categories.addEventListener('scroll',schedule,{passive:true});window.addEventListener('resize',schedule);
+ if('ResizeObserver' in window){const observer=new ResizeObserver(schedule);observer.observe(categories);observer.observe(bar)}
+ new MutationObserver(schedule).observe(categories,{childList:true,subtree:true});
+ schedule();
+})();

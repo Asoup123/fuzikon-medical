@@ -116,3 +116,13 @@ header.site-header{gap:22px}
  footer{padding:24px 74px 28px 18px;font-size:13px;overflow-wrap:anywhere}
 }
 @media(max-width:360px){.site-header .logo{font-size:15px}.site-header .logo img{height:36px}.product-grid{grid-template-columns:minmax(0,1fr)!important}.category-card h3{font-size:16px}}
+
+/* 手機分類列的常駐滑動指示條 */
+.fzk-category-scroll-indicator{display:none}
+@media(max-width:767px){
+ .category-buttons{scrollbar-width:none}
+ .category-buttons::-webkit-scrollbar{display:none}
+ .fzk-category-scroll-indicator{display:block;position:relative;height:5px;margin:7px 2px 2px;border-radius:99px;background:#dce7ec;overflow:hidden}
+ .fzk-category-scroll-indicator[hidden]{display:none}
+ .fzk-category-scroll-thumb{position:absolute;left:0;top:0;height:100%;border-radius:99px;background:#779cae;will-change:transform}
+}
