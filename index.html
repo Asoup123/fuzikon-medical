@@ -1368,6 +1368,11 @@ html.news-reading{overflow:hidden}
 }
 </style>
 
+<script>
+// 相容其他頁面既有的聯絡資訊連結。
+if(location.hash==='#contact')location.replace('contact.html');
+window.addEventListener('hashchange',()=>{if(location.hash==='#contact')location.replace('contact.html')});
+</script>
 </head>
 
 <body>
@@ -1377,7 +1382,7 @@ html.news-reading{overflow:hidden}
     <img src="images/fzk.png" alt="富致康醫療器材 Logo">
     <span>富致康醫療器材</span>
   </a>
-  <nav aria-label="主要導覽"><a href="index.html" class="active">首頁</a><a href="products.html">產品專區</a><a href="news.html">最新消息</a><a href="guestbook.html">留言板</a><a href="index.html#contact">聯絡我們</a></nav>
+  <nav aria-label="主要導覽"><a href="index.html" class="active">首頁</a><a href="products.html">產品專區</a><a href="news.html">最新消息</a><a href="guestbook.html">留言板</a><a href="contact.html">聯絡我們</a></nav>
 </header>
 
 
@@ -1502,128 +1507,7 @@ html.news-reading{overflow:hidden}
 
 <!-- CONTACT -->
 
-<section class="contact" id="contact">
 
-    <div class="section-title">
-
-        <span>
-            CONTACT US
-        </span>
-
-        <h2>
-            聯絡我們
-        </h2>
-
-        <p>
-            歡迎洽詢產品、醫療器材與輔具維修相關服務
-        </p>
-
-    </div>
-
-    <div class="contact-container">
-
-        <div class="contact-info">
-
-            <h3>
-                富致康醫療器材
-            </h3>
-
-            <p class="contact-intro">
-                商品、醫療器材、輔具及維修相關需求，
-                歡迎與我們聯繫。
-            </p>
-
-            <div class="contact-item">
-
-                <span class="contact-label">
-                    聯絡電話
-                </span>
-
-                <div class="contact-value">
-
-                    <a href="tel:034393948">
-                        03-439-3948
-                    </a>
-
-                </div>
-
-            </div>
-
-            <div class="contact-item">
-
-                <span class="contact-label">
-                    公司傳真
-                </span>
-
-                <div class="contact-value">
-                    03-439-8213
-                </div>
-
-            </div>
-
-            <div class="contact-item">
-
-                <span class="contact-label">
-                    電子信箱
-                </span>
-
-                <div class="contact-value">
-
-                    <a href="mailto:fuzikon.co@gmail.com">
-                        fuzikon.co@gmail.com
-                    </a>
-
-                </div>
-
-            </div>
-
-            <div class="contact-item">
-
-                <span class="contact-label">
-                    公司地址
-                </span>
-
-                <div class="contact-value">
-                    桃園市平鎮區南東路271之2號
-                </div>
-
-            </div>
-
-            <div class="contact-buttons">
-
-                <a href="tel:034393948">
-                    電話洽詢
-                </a>
-
-                <a href="mailto:fuzikon.co@gmail.com">
-                    Email 洽詢
-                </a>
-
-                <a
-                    href="https://maps.app.goo.gl/5penQ1XXtXmDmQyX6"
-                    target="_blank"
-                    rel="noopener">
-                    Google Maps 導航
-                </a>
-
-            </div>
-
-        </div>
-
-        <div class="map-box">
-
-            <iframe
-                src="https://www.google.com/maps?q=%E5%AF%8C%E8%87%B4%E5%BA%B7%E9%86%AB%E7%99%82%E5%99%A8%E6%9D%90%20%E6%A1%83%E5%9C%92%E5%B8%82%E5%B9%B3%E9%8E%AE%E5%8D%80%E5%8D%97%E6%9D%B1%E8%B7%AF271%E4%B9%8B2%E8%99%9F&output=embed"
-                loading="lazy"
-                referrerpolicy="no-referrer-when-downgrade"
-                title="富致康醫療器材地圖">
-            </iframe>
-
-        </div>
-
-    </div>
-
-</section>
 
 
 <footer>
