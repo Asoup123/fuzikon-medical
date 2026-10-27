@@ -1377,7 +1377,7 @@ window.addEventListener('hashchange',()=>{if(location.hash==='#contact')location
 .featured-viewport{overflow:hidden;min-width:0;padding:2px;border-radius:16px}
 #featuredTrack{overflow:visible;padding:0;scroll-snap-type:none;will-change:transform;transform:translate3d(0,0,0);transition:none}
 #featuredTrack .featured-card{flex:0 0 100%;min-width:0}
-#featuredTrack img{display:block;decoding:async}
+#featuredTrack img{display:block}
 </style>
 </head>
 
@@ -1841,7 +1841,15 @@ document.addEventListener("DOMContentLoaded",function(){
    const card=document.createElement('a');card.className='featured-card';card.href='products.html?product='+encodeURIComponent(item.id);
    const photo=document.createElement('div');photo.className='featured-photo';
    let url='';try{const u=new URL(item.image_urls?.[0],location.href);if(item.image_urls?.[0]&&['https:','http:'].includes(u.protocol))url=u.href}catch{}
-   if(url){const img=document.createElement('img');img.src=url;img.alt=item.name||'商品圖片';img.loading='lazy';img.decoding='async';img.addEventListener('error',()=>{photo.textContent='商品圖片準備中'},{once:true});photo.append(img)}else photo.textContent='商品圖片準備中';
+   if(url){
+    const img=document.createElement('img');
+    const marker='/storage/v1/object/public/product-images/products/';
+    const thumbnail=url.includes(marker)?url.replace(marker,'/storage/v1/object/public/product-images/thumbnails/').replace(/\.[^.\/?]+(?=\?|$)/,'.webp'):url;
+    img.alt=item.name||'商品圖片';img.loading='eager';img.decoding='async';
+    let usedOriginal=thumbnail===url;
+    img.addEventListener('error',()=>{if(!usedOriginal){usedOriginal=true;img.src=url;}else{photo.textContent='商品圖片準備中';}});
+    img.src=thumbnail;photo.append(img);
+   }else photo.textContent='商品圖片準備中';
    const name=document.createElement('div');name.className='featured-name';name.textContent=item.name||'商品';const copy=document.createElement('div');copy.className='featured-copy';const description=document.createElement('div');description.className='featured-description';const points=String(item.description||'').split(/\r?\n/).map(t=>t.trim()).filter(t=>t&&!/^[\[【［].*[\]】］]$/.test(t));description.textContent=points.slice(0,4).join('\n');copy.append(name,description);card.append(photo,copy);track.append(card);
   });
   section.hidden=false;
@@ -1856,9 +1864,17 @@ document.addEventListener("DOMContentLoaded",function(){
   }
   let slideWidth=0;
   function measure(){slideWidth=track.firstElementChild.getBoundingClientRect().width+18}
+  const readyImages=new WeakMap();
   function prepare(index){
    const img=track.children[index]?.querySelector('img');
-   if(img){img.loading='eager';if(img.decode)img.decode().catch(()=>{})}
+   if(!img)return Promise.resolve();
+   if(readyImages.has(img))return readyImages.get(img);
+   const ready=(async()=>{
+    img.loading='eager';
+    if(!img.complete)await new Promise(resolve=>{img.addEventListener('load',resolve,{once:true});img.addEventListener('error',resolve,{once:true})});
+    if(img.decode)try{await img.decode()}catch{}
+   })();
+   readyImages.set(img,ready);return ready;
   }
   function accessibility(){
    [...track.children].forEach((card,i)=>{card.inert=i!==position;card.setAttribute('aria-hidden',String(i!==position))});
@@ -1877,9 +1893,13 @@ document.addEventListener("DOMContentLoaded",function(){
    // 讓無動畫的循環定位先完成，再接受下一次切換。
    requestAnimationFrame(()=>requestAnimationFrame(()=>{busy=false}));
   }
-  function move(direction){
+  async function move(direction){
    if(count<2||busy)return;
-   busy=true;position+=direction;prepare(position);
+   busy=true;
+   const target=position+direction;
+   await prepare(target);
+   position=target;
+   await new Promise(resolve=>requestAnimationFrame(resolve));
    track.style.transition=reduced.matches?'none':'transform 460ms cubic-bezier(.25,.1,.25,1)';
    track.style.transform='translate3d('+(-position*slideWidth)+'px,0,0)';
    finishTimer=setTimeout(finish,reduced.matches?0:650);
