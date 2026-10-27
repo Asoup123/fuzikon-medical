@@ -1442,6 +1442,22 @@ window.addEventListener('hashchange',()=>{if(location.hash==='#contact')location
 }
 </style>
 
+
+<style id="shared-social-size">
+#home-social{position:fixed;right:24px;bottom:96px;display:flex;flex-direction:column;gap:14px;z-index:4900}
+#home-social .home-social-circle{display:flex;align-items:center;justify-content:center;width:60px;height:60px;flex-shrink:0;border-radius:50%;border:1px solid #d4e5ed;background:#fff;box-shadow:0 5px 20px rgba(22,76,101,.15);cursor:pointer;text-decoration:none;transition:box-shadow .2s ease}
+#home-social .home-social-circle svg{width:32px;height:32px}
+#home-social .home-social-circle:hover{box-shadow:0 7px 24px rgba(22,76,101,.23)}
+#home-social .home-social-circle:focus-visible{outline:3px solid #0797d3;outline-offset:3px}
+#home-back-top{right:24px;bottom:24px;width:60px;height:60px}
+@media(max-width:600px){
+ #home-social{right:14px;bottom:84px;gap:12px}
+ #home-social .home-social-circle{width:52px;height:52px}
+ #home-social .home-social-circle svg{width:29px;height:29px}
+ #home-back-top{right:14px;bottom:20px;width:52px;height:52px}
+}
+</style>
+
 </head>
 
 <body>
