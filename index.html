@@ -1306,21 +1306,23 @@ html.news-reading{overflow:hidden}
 
 <style id="featured-products-style">
 #featuredProducts[hidden]{display:none}
-#featuredProducts{padding:32px 8%;background:linear-gradient(135deg,#edf7fc,#fff);border-bottom:1px solid #dcebf3}
-.featured-wrap{max-width:1120px;margin:auto}
-.featured-head{display:flex;align-items:center;justify-content:space-between;gap:16px;margin-bottom:18px}
-.featured-head h2{font-size:26px;color:#164c65}
+#featuredProducts{margin:28px auto 0;padding:0;max-width:1060px}
+.featured-wrap{width:100%}
+.featured-head{display:flex;justify-content:flex-end;margin-bottom:10px}
 .featured-controls{display:flex;align-items:center;gap:8px}
-.featured-controls button{font:inherit;font-size:13px;border:1px solid #cee3ed;border-radius:18px;padding:6px 12px;background:#fff;color:#087ead;cursor:pointer}
-.featured-track{display:flex;gap:18px;overflow-x:auto;scroll-snap-type:x mandatory;scrollbar-width:thin;scrollbar-color:#b8d9e8 transparent;padding:3px 2px 12px;overscroll-behavior-x:contain}
-.featured-card{flex:0 0 calc((100% - 54px)/4);min-width:0;scroll-snap-align:start;background:#fff;border:1px solid #dce9ef;border-radius:14px;overflow:hidden;color:#17465c;transition:border-color .2s,box-shadow .2s}
+.featured-controls[hidden]{display:none}
+.featured-controls button{font:inherit;font-size:13px;border:1px solid #b9d9e9;border-radius:18px;padding:5px 12px;background:rgba(255,255,255,.8);color:#087ead;cursor:pointer}
+.featured-track{display:flex;gap:18px;overflow-x:auto;scroll-snap-type:x mandatory;scrollbar-width:none;padding:2px;overscroll-behavior-x:contain}
+.featured-track::-webkit-scrollbar{display:none}
+.featured-card{flex:0 0 100%;min-width:0;scroll-snap-align:start;display:grid;grid-template-columns:42% minmax(0,1fr);align-items:center;gap:28px;padding:26px;background:rgba(255,255,255,.88);border:1px solid #cbe1ed;border-radius:16px;color:#17465c;transition:border-color .2s,box-shadow .2s}
 .featured-card:hover{border-color:#93cce3;box-shadow:0 6px 18px rgba(22,76,101,.08)}
 .featured-card:focus-visible{outline:3px solid #0797d3;outline-offset:-3px}
-.featured-photo{height:190px;padding:16px;display:flex;align-items:center;justify-content:center;background:#fff;color:#78909c;font-size:14px}
+.featured-photo{height:290px;padding:12px;display:flex;align-items:center;justify-content:center;background:#fff;border-radius:12px;color:#78909c;font-size:14px}
 .featured-photo img{width:100%;height:100%;object-fit:contain}
-.featured-name{padding:12px 16px 16px;font-size:16px;font-weight:700;overflow-wrap:anywhere;border-top:1px solid #f0f5f8}
-@media(max-width:900px){.featured-card{flex-basis:calc((100% - 36px)/3)}}
-@media(max-width:600px){#featuredProducts{padding:26px 6%}.featured-card{flex-basis:76%}.featured-photo{height:180px}.featured-head h2{font-size:23px}.featured-controls{gap:5px}.featured-controls button{padding:6px 9px}}
+.featured-copy{min-width:0;padding:12px 8px}
+.featured-name{font-size:25px;font-weight:800;line-height:1.5;margin-bottom:14px;overflow-wrap:anywhere}
+.featured-description{font-size:16px;line-height:1.9;color:#536b76;white-space:pre-wrap;overflow-wrap:anywhere}
+@media(max-width:600px){#featuredProducts{margin-top:22px}.featured-card{grid-template-columns:1fr;gap:14px;padding:18px}.featured-photo{height:230px}.featured-copy{padding:0}.featured-name{font-size:22px;margin-bottom:10px}.featured-description{font-size:15px}.featured-controls{gap:6px}}
 @media(prefers-reduced-motion:reduce){.featured-card{transition:none}}
 </style>
 </head>
@@ -1337,16 +1339,7 @@ html.news-reading{overflow:hidden}
 
 
 <div id="home"></div>
-<section id="featuredProducts" hidden aria-label="精選商品輪播" aria-roledescription="輪播">
- <div class="featured-wrap">
-  <div class="featured-head"><h2>精選商品</h2><div class="featured-controls">
-   <button id="featuredPrev" type="button" aria-label="上一組精選商品">上一組</button>
-   <button id="featuredPlay" type="button">暫停</button>
-   <button id="featuredNext" type="button" aria-label="下一組精選商品">下一組</button>
-  </div></div>
-  <div class="featured-track" id="featuredTrack"></div>
- </div>
-</section>
+
 
 
 <!-- ABOUT -->
@@ -1371,6 +1364,17 @@ html.news-reading{overflow:hidden}
                 從產品選購、配件到後續維修，提供完整且專業的服務。
             </p>
         </div>
+<div id="featuredProducts" hidden aria-label="精選商品輪播" aria-roledescription="輪播">
+ <div class="featured-wrap">
+  <div class="featured-head"><div class="featured-controls">
+   <button id="featuredPrev" type="button" aria-label="上一個商品">上一個</button>
+   <button id="featuredPlay" type="button">暫停</button>
+   <button id="featuredNext" type="button" aria-label="下一個商品">下一個</button>
+  </div></div>
+  <div class="featured-track" id="featuredTrack"></div>
+ </div>
+</div>
+    </div>
 </section>
 
 <!-- CATEGORIES -->
@@ -1900,14 +1904,14 @@ document.addEventListener("DOMContentLoaded",function(){
  const reduced=window.matchMedia('(prefers-reduced-motion: reduce)');
  let auto=!reduced.matches,hover=false,timer=null;
  try{
-  const {data,error}=await publicDb.from('products').select('id,name,image_urls,sort_order').eq('is_active',true).eq('is_featured',true).order('sort_order',{ascending:true}).order('created_at',{ascending:true});
+  const {data,error}=await publicDb.from('products').select('id,name,description,image_urls,sort_order').eq('is_active',true).eq('is_featured',true).order('sort_order',{ascending:true}).order('created_at',{ascending:true});
   if(error)throw error;if(!data?.length)return;
   data.forEach(item=>{
    const card=document.createElement('a');card.className='featured-card';card.href='products.html?product='+encodeURIComponent(item.id);
    const photo=document.createElement('div');photo.className='featured-photo';
    let url='';try{const u=new URL(item.image_urls?.[0],location.href);if(item.image_urls?.[0]&&['https:','http:'].includes(u.protocol))url=u.href}catch{}
    if(url){const img=document.createElement('img');img.src=url;img.alt=item.name||'商品圖片';img.loading='lazy';img.addEventListener('error',()=>{photo.textContent='商品圖片準備中'},{once:true});photo.append(img)}else photo.textContent='商品圖片準備中';
-   const name=document.createElement('div');name.className='featured-name';name.textContent=item.name||'商品';card.append(photo,name);track.append(card);
+   const name=document.createElement('div');name.className='featured-name';name.textContent=item.name||'商品';const copy=document.createElement('div');copy.className='featured-copy';const description=document.createElement('div');description.className='featured-description';description.textContent=item.description||'';copy.append(name,description);card.append(photo,copy);track.append(card);
   });
   section.hidden=false;
   function hasOverflow(){return track.scrollWidth>track.clientWidth+3}
@@ -1923,7 +1927,7 @@ document.addEventListener("DOMContentLoaded",function(){
    play.textContent=auto?'暫停':'播放';
    const overflow=hasOverflow();
    document.querySelector('.featured-controls').hidden=!overflow;
-   if(auto&&overflow&&!hover&&!document.hidden&&!section.contains(document.activeElement))timer=setInterval(()=>move(1),4000);
+   if(auto&&overflow&&!hover&&!document.hidden&&!section.contains(document.activeElement))timer=setInterval(()=>move(1),6000);
   }
   function manual(direction){auto=false;move(direction);sync()}
   document.getElementById('featuredPrev').onclick=()=>manual(-1);
