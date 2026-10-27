@@ -15,8 +15,9 @@
 (()=>{
  const categories=document.querySelector('.product-sidebar .category-buttons');
  if(!categories)return;
- const bar=document.createElement('div');bar.className='fzk-category-scroll-indicator';bar.setAttribute('aria-hidden','true');
- const thumb=document.createElement('span');thumb.className='fzk-category-scroll-thumb';bar.append(thumb);categories.after(bar);
+ let bar=categories.parentElement.querySelector('.fzk-category-scroll-indicator');
+ if(!bar){bar=document.createElement('div');bar.className='fzk-category-scroll-indicator';bar.setAttribute('aria-hidden','true');bar.innerHTML='<span class="fzk-category-scroll-thumb"></span>';categories.after(bar)}
+ const thumb=bar.querySelector('.fzk-category-scroll-thumb');
  let queued=false;
  function update(){
   queued=false;
