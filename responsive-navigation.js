@@ -13,26 +13,20 @@
  window.matchMedia('(min-width:768px)').addEventListener('change',close);
 })();
 (()=>{
- const categories=document.querySelector('.product-sidebar .category-buttons');
- if(!categories)return;
- let bar=categories.parentElement.querySelector('.fzk-category-scroll-indicator');
- if(!bar){bar=document.createElement('div');bar.className='fzk-category-scroll-indicator';bar.setAttribute('aria-hidden','true');bar.innerHTML='<span class="fzk-category-scroll-thumb"></span>';categories.after(bar)}
- const thumb=bar.querySelector('.fzk-category-scroll-thumb');
+ const categories=document.querySelector('.product-sidebar .category-buttons');if(!categories)return;
+ categories.parentElement.querySelectorAll('.fzk-category-scroll-indicator,.fzk-category-hint').forEach(el=>el.remove());
  let queued=false;
  function update(){
   queued=false;
-  const max=categories.scrollWidth-categories.clientWidth;
-  bar.hidden=max<=2;
-  if(max<=2)return;
-  const width=bar.clientWidth;
-  const thumbWidth=Math.min(width,Math.max(28,width*categories.clientWidth/categories.scrollWidth));
-  thumb.style.width=thumbWidth+'px';
-  const progress=Math.max(0,Math.min(1,categories.scrollLeft/max));
-  thumb.style.transform='translateX('+((width-thumbWidth)*progress)+'px)';
+  const items=[...categories.querySelectorAll('.category-button')];if(!items.length)return;
+  const area=categories.getBoundingClientRect();
+  const first=items[0].getBoundingClientRect(),last=items[items.length-1].getBoundingClientRect();
+  categories.dataset.moreLeft=String(first.left<area.left-3);
+  categories.dataset.moreRight=String(last.right>area.right+3);
  }
  function schedule(){if(!queued){queued=true;requestAnimationFrame(update)}}
  categories.addEventListener('scroll',schedule,{passive:true});window.addEventListener('resize',schedule);
- if('ResizeObserver' in window){const observer=new ResizeObserver(schedule);observer.observe(categories);observer.observe(bar)}
+ if('ResizeObserver' in window){const observer=new ResizeObserver(schedule);observer.observe(categories);[...categories.children].forEach(el=>observer.observe(el))}
  new MutationObserver(schedule).observe(categories,{childList:true,subtree:true});
- schedule();
+ document.fonts?.ready.then(schedule);schedule();
 })();

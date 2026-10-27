@@ -117,12 +117,14 @@ header.site-header{gap:22px}
 }
 @media(max-width:360px){.site-header .logo{font-size:15px}.site-header .logo img{height:36px}.product-grid{grid-template-columns:minmax(0,1fr)!important}.category-card h3{font-size:16px}}
 
-/* 手機分類列的常駐滑動指示條 */
-.fzk-category-scroll-indicator{display:none}
+/* 手機分類：兩個完整項目與半個下一項，不使用額外提示元件 */
+.fzk-category-scroll-indicator,.fzk-category-hint{display:none!important}
 @media(max-width:767px){
- .category-buttons{scrollbar-width:none}
- .category-buttons::-webkit-scrollbar{display:none}
- .fzk-category-scroll-indicator{display:block;position:relative;height:5px;margin:7px 2px 2px;border-radius:99px;background:#dce7ec;overflow:hidden}
- .fzk-category-scroll-indicator[hidden]{display:none}
- .fzk-category-scroll-thumb{position:absolute;left:0;top:0;height:100%;border-radius:99px;background:#779cae;will-change:transform}
+ .product-sidebar .category-buttons{display:flex!important;flex-wrap:nowrap!important;gap:8px;padding:2px 0 4px;overflow-x:auto;scrollbar-width:none;scroll-snap-type:x proximity;scroll-padding:0}
+ .product-sidebar .category-buttons::-webkit-scrollbar{display:none}
+ .product-sidebar .category-buttons .category-button{flex:0 0 calc(40% - 6.4px);width:calc(40% - 6.4px)!important;min-width:0;text-align:center;padding:10px 4px;white-space:nowrap;scroll-snap-align:start;font-size:14px}
+ .category-buttons[data-more-left="false"][data-more-right="false"]{-webkit-mask-image:none;mask-image:none}
+ .category-buttons[data-more-left="true"][data-more-right="true"]{-webkit-mask-image:linear-gradient(to right,transparent,#000 12px,#000 calc(100% - 16px),transparent);mask-image:linear-gradient(to right,transparent,#000 12px,#000 calc(100% - 16px),transparent)}
+ .category-buttons[data-more-left="false"][data-more-right="true"]{-webkit-mask-image:linear-gradient(to right,#000,#000 calc(100% - 16px),transparent);mask-image:linear-gradient(to right,#000,#000 calc(100% - 16px),transparent)}
+ .category-buttons[data-more-left="true"][data-more-right="false"]{-webkit-mask-image:linear-gradient(to right,transparent,#000 12px,#000);mask-image:linear-gradient(to right,transparent,#000 12px,#000)}
 }
