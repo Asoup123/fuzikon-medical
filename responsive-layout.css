@@ -1,0 +1,118 @@
+/* 富致康：桌機、平板、手機分層排版 */
+html{scroll-padding-top:110px;overflow-x:clip!important}
+body{min-width:0;overflow-x:clip!important}
+img,iframe{max-width:100%}
+header.site-header{gap:22px}
+.site-header .logo{flex-shrink:0}
+.site-header nav a{min-height:44px;display:inline-flex;align-items:center}
+.fzk-menu-toggle{display:none}
+#about .about-container,.category-grid,.news-list,.home-message-list,.home-video-layout,.contact-container{min-width:0}
+.news-card,.news-card-body,.news-body,.contact-info,.home-video-copy{min-width:0;overflow-wrap:anywhere}
+.modal-description,.text,.reply-text{overflow-wrap:anywhere}
+@media(min-width:1200px){
+ header.site-header{flex-direction:row;flex-wrap:nowrap;padding:12px clamp(28px,5vw,100px)}
+ .site-header nav{width:auto;order:0;flex-wrap:nowrap;gap:clamp(16px,2vw,38px)}
+ .products-layout{grid-template-columns:210px minmax(0,1fr)!important;gap:26px}
+ .product-grid{grid-template-columns:repeat(4,minmax(0,1fr))!important}
+ .product-sidebar{position:sticky;top:110px}
+ #about .about-container{grid-template-columns:minmax(0,2fr) minmax(0,3fr);gap:30px}
+}
+@media(min-width:768px) and (max-width:1199px){
+ header.site-header{flex-direction:row;flex-wrap:wrap;justify-content:space-between;padding:12px 28px;gap:6px;min-height:0}
+ .site-header .logo{font-size:22px}.site-header .logo img{height:48px}
+ .site-header nav{order:2;width:100%;justify-content:flex-start;gap:26px;margin-left:0;overflow:visible;flex-wrap:wrap}
+ .site-header nav a{font-size:15px;padding:8px 2px}
+ html{scroll-padding-top:145px}
+ #about .about-container{grid-template-columns:1fr;gap:24px}
+ #about .about-intro{max-width:100%}
+ #about .about-heading{text-align:left}
+ #about .featured-card{grid-template-columns:42% minmax(0,1fr);padding:22px;gap:24px}
+ #about .featured-photo{height:260px}
+ .category-grid{grid-template-columns:repeat(3,minmax(0,1fr));gap:16px}
+ .category-card{min-height:115px;padding:20px}
+ .home-message-list{grid-template-columns:repeat(2,minmax(0,1fr))}
+ .home-video-layout{grid-template-columns:1fr 1.1fr;gap:26px}
+ .contact-container{grid-template-columns:1fr;gap:24px}
+ .map-box,.map-box iframe{min-height:380px}
+ .products-section{padding:28px 4% 60px!important}
+ .products-layout{grid-template-columns:minmax(0,1fr)!important;gap:24px}
+ .product-sidebar{position:static!important;padding:16px;overflow:visible}
+ .sidebar-title{margin:12px 0 8px}
+ .category-buttons{display:flex!important;flex-direction:row!important;flex-wrap:wrap;gap:8px}
+ .category-button{width:auto!important;flex:0 0 auto;padding:9px 13px;min-height:42px;white-space:nowrap}
+ .product-grid{grid-template-columns:repeat(3,minmax(0,1fr))!important;gap:16px}
+ .product-image{height:210px;padding:16px}
+ #productModal .modal-top{grid-template-columns:1fr 1fr;gap:24px}
+ #productModal .main-photo{height:340px!important}
+ .news-card.has-image{grid-template-columns:32% minmax(0,1fr);gap:20px}
+ .news-image img{min-height:180px}
+}
+@media(max-width:767px){
+ html{scroll-padding-top:82px}
+ header.site-header{position:sticky!important;top:0!important;flex-direction:row;flex-wrap:wrap;align-items:center;justify-content:space-between;padding:10px 16px;gap:0;min-height:68px;height:auto}
+ .site-header .logo{gap:9px;font-size:17px;max-width:calc(100% - 58px);white-space:nowrap}
+ .site-header .logo img{height:42px;width:auto}
+ .fzk-menu-toggle{display:flex;align-items:center;justify-content:center;gap:6px;width:48px;height:44px;border:1px solid #cee3ed;border-radius:9px;background:#fff;color:#087ead;cursor:pointer;font:inherit;font-size:13px}
+ .fzk-menu-toggle svg{width:19px;height:19px}
+ .site-header nav{order:3;width:100%;margin:10px 0 0!important;padding:8px 0 0;display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:4px 10px;white-space:normal;overflow:visible;border-top:1px solid #e6eff4}
+ .site-header.responsive-nav-ready:not(.nav-expanded) nav{display:none}
+ .site-header nav a{justify-content:center;padding:10px 8px;font-size:15px;min-height:44px;border-radius:7px}
+ .site-header nav a.active{background:#edf7fc}
+ .site-header nav a.active::after{display:none}
+ #about,.categories,.news-section,.guestbook-section,.home-video-section{padding-left:18px!important;padding-right:18px!important;padding-top:30px;padding-bottom:30px}
+ #about .about-container{display:grid;grid-template-columns:minmax(0,1fr);gap:22px}
+ #about .about-heading h2,.section-title h2{font-size:27px}
+ #about .about-text p{font-size:15px;line-height:1.85}
+ #about .featured-wrap{padding:0 14px}
+ #about .featured-card{grid-template-columns:minmax(0,1fr);padding:16px;gap:12px}
+ #about .featured-photo{height:210px}
+ #about .featured-name{font-size:20px}
+ #about .featured-description{font-size:15px;-webkit-line-clamp:6}
+ .category-grid{grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
+ .category-card{min-height:98px;padding:18px 12px;align-items:flex-start}
+ .category-card h3{font-size:18px}
+ .home-message-list{grid-template-columns:minmax(0,1fr);gap:12px}
+ .news-card,.message-card{padding:18px}
+ .home-video-layout{grid-template-columns:minmax(0,1fr);gap:20px}
+ .home-video-copy h2{font-size:23px;line-height:1.5}
+ .home-video-frame{width:100%;min-width:0}
+ .home-video-copy p{font-size:15px}
+ .contact{padding:30px 18px 44px!important}
+ .contact-container{grid-template-columns:minmax(0,1fr);gap:20px}
+ .contact-info{padding:24px}.contact-info h3{font-size:25px}
+ .contact-value{font-size:16px;overflow-wrap:anywhere}
+ .map-box,.map-box iframe{min-height:310px}
+ .news-main,body>main:not(.products-main){padding-left:18px;padding-right:18px}
+ .news-card.has-image{grid-template-columns:minmax(0,1fr);gap:16px}
+ .news-image img{height:190px;min-height:0}
+ .news-card h2{font-size:22px}
+ .form-card{padding:18px}.form-grid{grid-template-columns:minmax(0,1fr)}
+ .products-section{padding:20px 14px 50px!important}
+ .products-layout{grid-template-columns:minmax(0,1fr)!important;gap:20px}
+ .product-sidebar{position:static!important;padding:14px;overflow:visible}
+ .sidebar-title{margin:12px 0 8px}
+ .category-buttons{display:flex!important;flex-direction:row!important;flex-wrap:nowrap!important;overflow-x:auto;gap:8px;padding:2px 0 8px;scrollbar-width:thin}
+ .category-button{width:auto!important;flex:0 0 auto;min-height:42px;padding:9px 12px;white-space:nowrap}
+ .product-grid{grid-template-columns:repeat(2,minmax(0,1fr))!important;gap:10px}
+ .product-image{height:165px!important;padding:12px!important}
+ .product-content{padding:12px!important}
+ .product-name,.product-card h3{font-size:16px!important;line-height:1.5}
+ .products-heading h1{font-size:25px}
+ #productModal{padding:0!important;align-items:stretch;z-index:9000!important}
+ #productModal .modal-dialog{width:100%!important;max-width:100%!important;max-height:100dvh;height:100dvh;margin:0!important;border-radius:0}
+ #productModal .modal-inner{padding:16px 18px 30px}
+ #productModal .modal-top{grid-template-columns:minmax(0,1fr)!important;gap:20px}
+ #productModal .main-photo{height:300px!important;padding:14px}
+ #productModal .thumbnail-list{display:flex;overflow-x:auto;flex-wrap:nowrap;gap:8px}
+ #productModal .thumbnail{flex:0 0 60px;width:60px;height:60px}
+ #productModal .modal-info h2{font-size:24px}
+ .variant-table-wrap{overflow-x:auto;-webkit-overflow-scrolling:touch}
+ .spec-table{table-layout:fixed;width:100%}.spec-table th,.spec-table td{overflow-wrap:anywhere;white-space:normal}
+ .news-dialog{width:calc(100vw - 20px);max-height:94dvh}
+ .news-detail{padding:18px}.news-detail h2{font-size:24px}
+ #home-social{right:10px;bottom:84px;gap:10px}
+ #home-social .home-social-circle{width:52px;height:52px}
+ #home-back-top{right:10px;width:52px;height:52px}
+ footer{padding:24px 74px 28px 18px;font-size:13px;overflow-wrap:anywhere}
+}
+@media(max-width:360px){.site-header .logo{font-size:15px}.site-header .logo img{height:36px}.product-grid{grid-template-columns:minmax(0,1fr)!important}.category-card h3{font-size:16px}}

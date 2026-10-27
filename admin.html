@@ -351,6 +351,23 @@ main{width:92%;max-width:1280px;margin:32px auto 70px}.top{display:flex;justify-
 }
 </style>
 
+<style id="admin-device-layout">
+@media(min-width:768px) and (max-width:1199px){main{width:94%}.table-wrap{overflow-x:auto}.table-wrap table{min-width:850px}.editor{padding:22px}.news-editor-grid{grid-template-columns:1fr 180px}}
+@media(max-width:767px){
+ main{width:auto;margin:20px 14px 40px}header{padding:14px;gap:12px}.header-actions{flex-wrap:wrap}
+ .admin-tabs{display:flex;overflow-x:auto;flex-wrap:nowrap;gap:6px;padding:4px 0 10px}.admin-tab{flex:0 0 auto;white-space:nowrap;min-height:44px}
+ .top{gap:12px}.top h1{font-size:25px}.filters{display:grid;grid-template-columns:1fr}.filters input,.filters select{width:100%;min-width:0}
+ .editor,.news-editor{padding:18px}.grid,.news-editor-grid{grid-template-columns:1fr}.span2{grid-column:auto}
+ .table-wrap{background:transparent;box-shadow:none;overflow:visible}.table-wrap table{display:block}.table-wrap thead{display:none}
+ #tbody{display:grid;gap:12px}#tbody tr{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:0 12px;padding:14px;background:#fff;border:1px solid #dce7ed;border-radius:12px}
+ #tbody td{display:flex;flex-wrap:wrap;gap:6px;align-items:center;padding:8px 0;border:0;min-width:0;overflow-wrap:anywhere}
+ #tbody td::before{content:attr(data-label);font-size:12px;color:#78909c;flex-basis:100%}
+ #tbody td:nth-child(3),#tbody td:last-child{grid-column:1/-1}#tbody td:nth-child(3){font-weight:700;color:#17465c}
+ #tbody td[colspan]{grid-column:1/-1}.actions button{min-height:42px;padding:8px 14px}
+ .row2,.row1,.variant-top{grid-template-columns:1fr}.checks{gap:16px}.checks input{width:20px;height:20px}
+ .section-head,.news-admin-head{flex-wrap:wrap}.previews{gap:8px}.login-box{padding:26px}
+}
+</style>
 </head>
 <body>
 
@@ -1669,6 +1686,9 @@ $("videoHide").onclick=async()=>{
   $("videoPublic").checked=false;$("videoMsg").textContent="已取消首頁顯示";
 };
 boot();
+</script>
+<script>
+(()=>{const body=document.getElementById('tbody');if(!body)return;const labels=[...body.closest('table').querySelectorAll('thead th')].map(t=>t.textContent.trim());function label(){for(const row of body.rows)for(let i=0;i<row.cells.length;i++)if(row.cells[i].colSpan===1)row.cells[i].dataset.label=labels[i]||''}new MutationObserver(label).observe(body,{childList:true});label()})();
 </script>
 </body>
 </html>
