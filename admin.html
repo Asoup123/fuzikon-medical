@@ -329,6 +329,11 @@ main{width:92%;max-width:1280px;margin:32px auto 70px}.top{display:flex;justify-
 .admin-message-text,.admin-reply{overflow-wrap:anywhere;word-break:break-word}
 
 </style>
+<style>
+.featured-quick{display:inline-flex;align-items:center;gap:6px;cursor:pointer;white-space:nowrap}
+.featured-quick input{width:19px;height:19px;accent-color:#0797d3;cursor:pointer}
+.featured-save-status{font-size:12px;color:#607d8b}
+</style>
 </head>
 <body>
 
@@ -394,7 +399,7 @@ main{width:92%;max-width:1280px;margin:32px auto 70px}.top{display:flex;justify-
 <div id="filterCount" class="filter-count"></div>
 <div class="table-wrap">
 <table>
-<thead><tr><th>順序</th><th>圖片</th><th>商品</th><th>分類</th><th>狀態</th><th>操作</th></tr></thead>
+<thead><tr><th>順序</th><th>圖片</th><th>商品</th><th>分類</th><th>狀態</th><th>精選</th><th>操作</th></tr></thead>
 <tbody id="tbody"></tbody>
 </table>
 </div>
@@ -1145,9 +1150,9 @@ function buildSubsidy(){
 
 
 async function load(){
-$("tbody").innerHTML='<tr><td colspan="6">載入中...</td></tr>';
+$("tbody").innerHTML='<tr><td colspan="7">載入中...</td></tr>';
 const {data,error}=await db.from("products").select("*").order("sort_order",{ascending:true}).order("created_at",{ascending:true});
-if(error)return $("tbody").innerHTML='<tr><td colspan="6">讀取失敗：'+esc(error.message)+'</td></tr>';
+if(error)return $("tbody").innerHTML='<tr><td colspan="7">讀取失敗：'+esc(error.message)+'</td></tr>';
 productsCache=data||[];
 renderProductTable();
 }
@@ -1163,16 +1168,35 @@ function renderProductTable(){
  });
 
  $("filterCount").textContent=`顯示 ${filtered.length} / ${productsCache.length} 件商品`;
- $("tbody").innerHTML=filtered.length?"":'<tr><td colspan="6">找不到符合條件的商品</td></tr>';
+ $("tbody").innerHTML=filtered.length?"":'<tr><td colspan="7">找不到符合條件的商品</td></tr>';
 
  filtered.forEach((p,index)=>{
    const tr=document.createElement("tr"),img=p.image_urls?.[0]||"";
    tr.draggable=true;
    tr.dataset.id=p.id;
-   tr.innerHTML=`<td><span class="sort-badge">${Number(p.sort_order)||index+1}</span></td><td>${img?`<img class="thumb" src="${esc(img)}">`:"無圖片"}</td><td>${esc(p.name)}</td><td>${cname(p.category)}</td><td><span class="status ${p.is_active?"on":""}">${p.is_active?"上架":"下架"}</span></td><td><div class="actions"><button data-e="${p.id}">編輯</button><button data-d="${p.id}">刪除</button></div></td>`;
+   tr.innerHTML=`<td><span class="sort-badge">${Number(p.sort_order)||index+1}</span></td><td>${img?`<img class="thumb" src="${esc(img)}">`:"無圖片"}</td><td>${esc(p.name)}</td><td>${cname(p.category)}</td><td><span class="status ${p.is_active?"on":""}">${p.is_active?"上架":"下架"}</span></td><td><label class="featured-quick"><input type="checkbox" data-featured="${esc(p.id)}" ${p.is_featured?"checked":""} aria-label="${esc(p.name)}：首頁精選"><span class="featured-save-status" role="status"></span></label></td><td><div class="actions"><button data-e="${p.id}">編輯</button><button data-d="${p.id}">刪除</button></div></td>`;
    $("tbody").appendChild(tr);
  });
 
+ document.querySelectorAll('[data-featured]').forEach(box=>{
+  box.addEventListener('click',event=>event.stopPropagation());
+  box.addEventListener('pointerdown',event=>event.stopPropagation());
+  box.addEventListener('change',async()=>{
+   const item=productsCache.find(p=>String(p.id)===box.dataset.featured);
+   if(!item)return;
+   const old=!!item.is_featured,value=box.checked;
+   const status=box.parentElement.querySelector('.featured-save-status');
+   box.disabled=true;status.textContent='儲存中…';
+   try{
+    const {data,error}=await db.from('products').update({is_featured:value}).eq('id',item.id).select('id,is_featured').single();
+    if(error)throw error;
+    item.is_featured=!!data.is_featured;box.checked=item.is_featured;
+    if(String($('id').value)===String(item.id))$('featured').checked=item.is_featured;
+    status.textContent='已儲存';setTimeout(()=>{status.textContent=''},1800);
+   }catch(error){box.checked=old;status.textContent='儲存失敗';alert('精選設定儲存失敗：'+error.message)}
+   finally{box.disabled=false}
+  });
+ });
  document.querySelectorAll("[data-e]").forEach(b=>b.onclick=()=>edit(b.dataset.e));
  document.querySelectorAll("[data-d]").forEach(b=>b.onclick=()=>del(b.dataset.d));
 
