@@ -426,6 +426,7 @@ main{width:92%;max-width:1280px;margin:32px auto 70px}.top{display:flex;justify-
 
 <div class="checks">
 <label><input id="active" type="checkbox" checked> 商品上架</label>
+<label><input id="featured" type="checkbox"> 首頁精選商品</label>
 </div>
 
 <div class="section">
@@ -1499,6 +1500,7 @@ async function reset(useDefaults=true){
   $("category").value="aluminum-wheelchair";
   $("sort").value=await nextSortOrder();
   $("active").checked=true;
+  $("featured").checked=false;
   $("specs").innerHTML="";$("variants").innerHTML="";
   images=[];imageNotes=[];originalImages=[];renderImages();$("saveMsg").textContent="";
   if(useDefaults)defaults();
@@ -1516,7 +1518,7 @@ try{
  const desired=Math.max(1,Number($("sort").value)||1);
  const editingId=$("id").value;
  const imageNoteMeta="__IMAGE_NOTES__"+JSON.stringify(imageNotes);
-const item={name,category:$("category").value,description:$("desc").value.trim(),subsidy:buildSubsidy(),sort_order:desired,is_active:$("active").checked,features:[imageNoteMeta],specs,variants,image_urls:images};
+const item={name,category:$("category").value,description:$("desc").value.trim(),subsidy:buildSubsidy(),sort_order:desired,is_active:$("active").checked,is_featured:$("featured").checked,features:[imageNoteMeta],specs,variants,image_urls:images};
  let savedId=editingId;
  if(editingId){
   const {error}=await db.from("products").update(item).eq("id",editingId);if(error)throw error;
@@ -1543,7 +1545,7 @@ $("desc").value=data.description||"";
 const subsidyData=parseSubsidy(data.subsidy);
 $("ltcSubsidy").value=subsidyData.long_term_care;
 $("disabilitySubsidy").value=subsidyData.disability;
-$("sort").value=data.sort_order||1;$("active").checked=!!data.is_active;
+$("sort").value=data.sort_order||1;$("active").checked=!!data.is_active;$("featured").checked=!!data.is_featured;
 images=[...(data.image_urls||[])];originalImages=[...(data.image_urls||[])];
 imageNotes=[];
 const noteMeta=(data.features||[]).find(x=>typeof x==="string"&&x.startsWith("__IMAGE_NOTES__"));

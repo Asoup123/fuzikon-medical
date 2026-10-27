@@ -2130,6 +2130,8 @@ async function loadProducts() {
     } else {
         filterProducts("all");
     }
+    const selectedId=params.get("product");
+    if(selectedId && allProducts.some(p=>String(p.id)===selectedId))openProduct(allProducts.find(p=>String(p.id)===selectedId).id);
 }
 
 
