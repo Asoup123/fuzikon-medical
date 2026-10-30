@@ -467,6 +467,9 @@ main{width:92%;max-width:1280px;margin:32px auto 70px}.top{display:flex;justify-
 <tbody id="tbody"></tbody>
 </table>
 </div>
+<div style="display:flex;justify-content:flex-end;margin:18px 0 6px">
+<button id="newBtnBottom" type="button" class="primary">＋ 新增商品</button>
+</div>
 
 <section id="editor" class="card editor hidden">
 <div class="top"><h2 id="editorTitle">新增商品</h2><button id="closeBtn">關閉</button></div>
@@ -1626,6 +1629,7 @@ async function reset(useDefaults=true){
   if(useDefaults)defaults();
 }
 $("newBtn").onclick=async()=>{await reset();$("editorTitle").textContent="新增商品";$("editor").classList.remove("hidden");$("editor").scrollIntoView({behavior:"smooth"})};
+$("newBtnBottom").onclick=()=>$("newBtn").click();
 $("closeBtn").onclick=()=>$("editor").classList.add("hidden");
 
 $("saveBtn").onclick=async()=>{
