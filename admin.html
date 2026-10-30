@@ -328,6 +328,29 @@ main{width:92%;max-width:1280px;margin:32px auto 70px}.top{display:flex;justify-
 .admin-message-card,.admin-message-head,.admin-message-user,.admin-message-text,.admin-reply-wrap{min-width:0}
 .admin-message-text,.admin-reply{overflow-wrap:anywhere;word-break:break-word}
 
+
+.category-settings{margin:20px 0 24px;padding:24px;border:1px solid #dce8ee;border-radius:16px;background:#f6fafc}
+.category-settings-head{display:flex;justify-content:space-between;align-items:center;gap:16px;margin-bottom:8px}
+.category-settings h2{margin:0;font-size:20px;letter-spacing:.04em}
+.category-settings .category-help{margin:0 0 20px;color:#67808d;font-size:14px;line-height:1.8}
+#reloadCategories{flex-shrink:0;background:#fff;color:#356079;border:1px solid #d6e3ea;border-radius:9px;padding:8px 12px;font-size:13px}
+#categorySwitches{display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:12px}
+#categorySwitches .category-toggle{position:relative;display:flex;align-items:center;justify-content:space-between;gap:12px;min-width:0;margin:0;padding:16px;background:#fff;border:1px solid #dce6ec;border-radius:12px;cursor:pointer;transition:border-color .18s,box-shadow .18s}
+#categorySwitches .category-toggle:hover{border-color:#85bad3;box-shadow:0 3px 12px #1457780d}
+.category-toggle-copy{display:flex;flex-direction:column;gap:6px;min-width:0}
+.category-toggle-name{font-size:15px;font-weight:600;color:#234e64;line-height:1.5;white-space:nowrap}
+.category-toggle-state{font-size:12px;font-weight:400;color:#81929b;line-height:1.5}
+.category-toggle.is-visible .category-toggle-state{color:#1286ab}
+#categorySwitches .category-toggle input{position:absolute;width:1px;height:1px;opacity:0;padding:0;margin:0}
+.category-toggle-track{display:block;position:relative;width:42px;height:24px;flex:0 0 42px;border-radius:20px;background:#c9d4db;transition:background .18s}
+.category-toggle-track::after{content:'';position:absolute;top:3px;left:3px;width:18px;height:18px;border-radius:50%;background:#fff;box-shadow:0 1px 3px #0002;transition:transform .18s}
+.category-toggle input:checked + .category-toggle-track{background:#138db6}
+.category-toggle input:checked + .category-toggle-track::after{transform:translateX(18px)}
+.category-toggle input:focus-visible + .category-toggle-track{outline:3px solid #8bcbe9;outline-offset:4px}
+.category-toggle:has(input:disabled){opacity:.6;cursor:wait}
+#categorySwitchStatus{min-height:21px;margin:16px 0 0;padding-top:14px;border-top:1px solid #e0eaf0;color:#67808d;font-size:13px;line-height:1.7}
+@media(max-width:600px){.category-settings{padding:16px}.category-settings-head{align-items:flex-start}.category-settings h2{font-size:18px}#categorySwitches{grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}#categorySwitches .category-toggle{padding:12px;gap:8px}.category-toggle-name{font-size:14px}.category-toggle-track{width:36px;height:22px;flex-basis:36px}.category-toggle-track::after{width:16px;height:16px}.category-toggle input:checked + .category-toggle-track::after{transform:translateX(14px)}}
+@media(max-width:360px){#categorySwitches{grid-template-columns:1fr}}
 </style>
 <style>
 .featured-quick{display:inline-flex;align-items:center;gap:6px;cursor:pointer;white-space:nowrap}
@@ -414,12 +437,11 @@ main{width:92%;max-width:1280px;margin:32px auto 70px}.top{display:flex;justify-
   <progress id="batchThumbProgress" value="0" max="100" style="display:none;width:100%;margin-top:10px;height:12px"></progress>
   <div id="batchThumbStatus" role="status" aria-live="polite" style="margin-top:8px;font-size:13px;white-space:pre-line"></div>
 </div>
-<section style="margin:14px 0;padding:16px;border:1px solid #d6e7ee;border-radius:12px;background:#f5fbfe" aria-labelledby="categorySettingsTitle">
-<h2 id="categorySettingsTitle" style="margin:0 0 8px;font-size:19px">分類顯示開關</h2>
-<p>關閉後，前台分類與該分類商品都會隱藏；後台仍可新增、編輯商品。準備完成再打開即可，商品原本的上架與精選設定會保留。</p>
-<div id="categorySwitches" style="display:flex;flex-wrap:wrap;gap:12px"></div>
+<section class="category-settings" aria-labelledby="categorySettingsTitle">
+<div class="category-settings-head"><h2 id="categorySettingsTitle">分類顯示開關</h2><button type="button" id="reloadCategories">重新整理</button></div>
+<p class="category-help">先關閉分類，安心準備商品；完成後再開啟。關閉期間仍可在後台編輯，並保留商品上架與精選設定。</p>
+<div id="categorySwitches"></div>
 <p id="categorySwitchStatus" role="status" aria-live="polite"></p>
-<button type="button" id="reloadCategories">重新讀取分類設定</button>
 </section>
 <div class="sort-note">☰ 可直接拖曳商品調整順序；排序欄也可手動輸入數字，系統會自動避免重複順序。</div>
 <div class="filters">
@@ -1200,9 +1222,14 @@ async function loadCategorySwitches(){
   const state=await categoryVisibility.load(db);
   for(const option of $('categoryFilter').options){
    if(option.value==='all')continue;
-   const label=document.createElement('label');label.style.cssText='display:flex;align-items:center;gap:8px;padding:10px;background:white;border:1px solid #c9dce6;border-radius:8px';
+   const label=document.createElement('label');label.className='category-toggle';
    const input=document.createElement('input');input.type='checkbox';input.checked=categoryVisibility.visible(state,option.value);input.setAttribute('role','switch');input.setAttribute('aria-label',option.text+'前台顯示');
-   const text=document.createElement('span');const update=()=>text.textContent=option.text+'：'+(input.checked?'開啟':'關閉');update();label.append(input,text);host.append(label);
+   const copy=document.createElement('span');copy.className='category-toggle-copy';
+   const name=document.createElement('span');name.className='category-toggle-name';name.textContent=option.text;
+   const text=document.createElement('span');text.className='category-toggle-state';
+   const track=document.createElement('span');track.className='category-toggle-track';track.setAttribute('aria-hidden','true');
+   const update=()=>{text.textContent=input.checked?'前台顯示中':'前台已隱藏';label.classList.toggle('is-visible',input.checked);};
+   copy.append(name,text);update();label.append(copy,input,track);host.append(label);
    input.onchange=async()=>{
     const value=input.checked;input.disabled=true;status.textContent='儲存中…';
     try{
@@ -1213,7 +1240,7 @@ async function loadCategorySwitches(){
     finally{input.disabled=false;}
    };
   }
-  status.textContent='勾選代表開啟；取消勾選代表關閉，變更會自動儲存。';
+  status.textContent='點擊開關即可切換，變更會自動儲存。';
  }catch(error){status.textContent='分類設定無法讀取，請先執行隨附的 category-visibility.sql，再按重新讀取。';}
 }
 $('reloadCategories').onclick=loadCategorySwitches;
