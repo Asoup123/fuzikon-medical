@@ -1989,6 +1989,7 @@ body.modal-open #productModal .main-photo{
 
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="category-visibility.js"></script>
 
 <script>
 
@@ -2092,7 +2093,10 @@ function categoryName(category) {
 }
 
 
+let visibleCategories=new Map();
 async function loadProducts() {
+    try { visibleCategories=await categoryVisibility.load(db); categoryVisibility.apply(visibleCategories); }
+    catch(error){productGrid.textContent="商品分類暫時無法載入，請稍後再試。";return;}
 
     productGrid.innerHTML = `
         <div class="loading-box">
@@ -2135,7 +2139,7 @@ async function loadProducts() {
     }
 
     allProducts =
-        data || [];
+        (data || []).filter(p=>categoryVisibility.visible(visibleCategories,p.category));
 
     const params =
         new URLSearchParams(
@@ -2147,7 +2151,7 @@ async function loadProducts() {
 
     if (
         requested &&
-        categoryText[requested]
+        categoryText[requested] && categoryVisibility.visible(visibleCategories,requested)
     ) {
         filterProducts(requested);
     } else {

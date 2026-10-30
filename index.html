@@ -1645,10 +1645,13 @@ document.addEventListener("DOMContentLoaded",function(){
   </article>
 </dialog>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="category-visibility.js"></script>
 <script>
 const PUBLIC_SUPABASE_URL="https://sdkgiedglmhmchiietru.supabase.co";
 const PUBLIC_SUPABASE_KEY="sb_publishable_ofwe1YigppMHJjcWu_VjUA_XF7wNzEm";
 const publicDb=supabase.createClient(PUBLIC_SUPABASE_URL,PUBLIC_SUPABASE_KEY);
+const categoryStatePromise=categoryVisibility.load(publicDb);
+categoryStatePromise.then(state=>categoryVisibility.apply(state)).catch(()=>{document.querySelectorAll('a.category-card').forEach(el=>{el.hidden=true;el.style.setProperty('display','none','important');});});
 const hEsc=v=>String(v??"").replace(/[&<>"']/g,m=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#039;"}[m]));
 const hDate=v=>new Date(v).toLocaleDateString("zh-TW",{year:"numeric",month:"2-digit",day:"2-digit"});
 
@@ -1914,8 +1917,9 @@ document.addEventListener("DOMContentLoaded",function(){
  const reduced=window.matchMedia('(prefers-reduced-motion: reduce)');
  let hover=false,timer=null;
  try{
-  const {data,error}=await publicDb.from('products').select('id,name,description,image_urls,sort_order').eq('is_active',true).eq('is_featured',true).order('sort_order',{ascending:true}).order('created_at',{ascending:true});
-  if(error)throw error;if(!data?.length)return;
+  const state=await categoryStatePromise;
+  const {data:rows,error}=await publicDb.from('products').select('id,name,description,image_urls,sort_order,category').eq('is_active',true).eq('is_featured',true).order('sort_order',{ascending:true}).order('created_at',{ascending:true});
+  if(error)throw error;const data=(rows||[]).filter(p=>categoryVisibility.visible(state,p.category));if(!data.length)return;
   data.forEach(item=>{
    const card=document.createElement('a');card.className='featured-card';card.href='products.html?product='+encodeURIComponent(item.id);
    const photo=document.createElement('div');photo.className='featured-photo';

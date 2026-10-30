@@ -414,6 +414,13 @@ main{width:92%;max-width:1280px;margin:32px auto 70px}.top{display:flex;justify-
   <progress id="batchThumbProgress" value="0" max="100" style="display:none;width:100%;margin-top:10px;height:12px"></progress>
   <div id="batchThumbStatus" role="status" aria-live="polite" style="margin-top:8px;font-size:13px;white-space:pre-line"></div>
 </div>
+<section style="margin:14px 0;padding:16px;border:1px solid #d6e7ee;border-radius:12px;background:#f5fbfe" aria-labelledby="categorySettingsTitle">
+<h2 id="categorySettingsTitle" style="margin:0 0 8px;font-size:19px">分類顯示開關</h2>
+<p>關閉後，前台分類與該分類商品都會隱藏；後台仍可新增、編輯商品。準備完成再打開即可，商品原本的上架與精選設定會保留。</p>
+<div id="categorySwitches" style="display:flex;flex-wrap:wrap;gap:12px"></div>
+<p id="categorySwitchStatus" role="status" aria-live="polite"></p>
+<button type="button" id="reloadCategories">重新讀取分類設定</button>
+</section>
 <div class="sort-note">☰ 可直接拖曳商品調整順序；排序欄也可手動輸入數字，系統會自動避免重複順序。</div>
 <div class="filters">
   <input id="productSearch" type="search" placeholder="搜尋商品名稱">
@@ -562,6 +569,7 @@ main{width:92%;max-width:1280px;margin:32px auto 70px}.top{display:flex;justify-
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="category-visibility.js"></script>
 <script>
 const SUPABASE_URL="https://sdkgiedglmhmchiietru.supabase.co";
 const SUPABASE_KEY="sb_publishable_ofwe1YigppMHJjcWu_VjUA_XF7wNzEm";
@@ -588,7 +596,7 @@ const {data}=await db.auth.getSession();
 if(data.session && await isAdmin()) showAdmin(); else showLogin();
 }
 function showLogin(msg=""){$("loginPage").classList.remove("hidden");$("adminPage").classList.add("hidden");$("loginMsg").textContent=msg}
-function showAdmin(){$("loginPage").classList.add("hidden");$("adminPage").classList.remove("hidden");load()}
+function showAdmin(){loadCategorySwitches();$("loginPage").classList.add("hidden");$("adminPage").classList.remove("hidden");load()}
 
 $("loginBtn").onclick=async()=>{
 $("loginMsg").textContent="登入中...";
@@ -1184,6 +1192,31 @@ function buildSubsidy(){
   });
 }
 
+
+async function loadCategorySwitches(){
+ const host=$('categorySwitches'),status=$('categorySwitchStatus');host.replaceChildren();
+ status.textContent='分類設定載入中…';
+ try{
+  const state=await categoryVisibility.load(db);
+  for(const option of $('categoryFilter').options){
+   if(option.value==='all')continue;
+   const label=document.createElement('label');label.style.cssText='display:flex;align-items:center;gap:8px;padding:10px;background:white;border:1px solid #c9dce6;border-radius:8px';
+   const input=document.createElement('input');input.type='checkbox';input.checked=categoryVisibility.visible(state,option.value);input.setAttribute('role','switch');input.setAttribute('aria-label',option.text+'前台顯示');
+   const text=document.createElement('span');const update=()=>text.textContent=option.text+'：'+(input.checked?'開啟':'關閉');update();label.append(input,text);host.append(label);
+   input.onchange=async()=>{
+    const value=input.checked;input.disabled=true;status.textContent='儲存中…';
+    try{
+     const {data,error}=await db.from('product_categories').upsert({id:option.value,is_visible:value},{onConflict:'id'}).select('id,is_visible').single();
+     if(error)throw error;if(data.is_visible!==value)throw new Error('設定未完成');
+     update();status.textContent=option.text+'已'+(value?'開啟':'關閉')+'，訪客重新載入頁面後生效。';
+    }catch(error){input.checked=!value;update();status.textContent='儲存失敗：'+error.message;}
+    finally{input.disabled=false;}
+   };
+  }
+  status.textContent='勾選代表開啟；取消勾選代表關閉，變更會自動儲存。';
+ }catch(error){status.textContent='分類設定無法讀取，請先執行隨附的 category-visibility.sql，再按重新讀取。';}
+}
+$('reloadCategories').onclick=loadCategorySwitches;
 
 async function load(){
 $("tbody").innerHTML='<tr><td colspan="7">載入中...</td></tr>';
