@@ -428,6 +428,7 @@ main{width:92%;max-width:1280px;margin:32px auto 70px}.top{display:flex;justify-
     <option value="cane-crutch">手／拐杖</option>
     <option value="quad-cane">四腳拐</option>
     <option value="accessories">輔助用品</option>
+<option value="parts">配件</option>
   </select>
 </div>
 <div id="filterCount" class="filter-count"></div>
@@ -455,6 +456,7 @@ main{width:92%;max-width:1280px;margin:32px auto 70px}.top{display:flex;justify-
 <option value="cane-crutch">手／拐杖</option>
 <option value="quad-cane">四腳拐</option>
 <option value="accessories">輔助用品</option>
+<option value="parts">配件</option>
 </select>
 </div>
 <div class="field span2"><label>詳細介紹</label><textarea id="desc"></textarea></div>
@@ -1152,7 +1154,7 @@ $("productSearch").addEventListener("input",renderProductTable);
 $("categoryFilter").addEventListener("change",renderProductTable);
 
 
-const cname=c=>({"aluminum-wheelchair":"鋁製輪椅","steel-wheelchair":"鐵製輪椅","rollator":"助步車","commode-chair":"便椅","shower-chair":"洗澡椅","walker":"助行器","cane-crutch":"手／拐杖","quad-cane":"四腳拐","accessories":"輔助用品"}[c]||c);
+const cname=c=>({"aluminum-wheelchair":"鋁製輪椅","steel-wheelchair":"鐵製輪椅","rollator":"助步車","commode-chair":"便椅","shower-chair":"洗澡椅","walker":"助行器","cane-crutch":"手／拐杖","quad-cane":"四腳拐","accessories":"輔助用品","parts":"配件"}[c]||c);
 const esc=s=>String(s||"").replace(/[&<>"']/g,m=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#039;"}[m]));
 
 function parseSubsidy(value){
